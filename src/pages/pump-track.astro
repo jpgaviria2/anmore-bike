@@ -524,7 +524,7 @@ import ProfileModal from '../components/ProfileModal.astro';
     });
     map.addControl(drawControl);
     
-    map.on('draw:created', (e) => {
+    map.on('draw:created', (e: any) => {
       drawnItems.addLayer(e.layer);
     });
     
