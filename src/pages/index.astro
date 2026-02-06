@@ -23,10 +23,10 @@ const base = import.meta.env.BASE_URL;
           Together we're creating safe trails, pump tracks, and bike-friendly routes—without waiting for funding.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href={`${base}trail-building`} class="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-50 transition shadow-lg">
+          <a href={`${base}trail-building/`} class="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-50 transition shadow-lg">
             Propose a Trail
           </a>
-          <a href={`${base}leaderboard`} class="bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-800 transition border-2 border-white">
+          <a href={`${base}leaderboard/`} class="bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-800 transition border-2 border-white">
             View Contributors
           </a>
         </div>
@@ -43,7 +43,7 @@ const base = import.meta.env.BASE_URL;
       
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
         <!-- Trail Building -->
-        <a href={`${base}trail-building`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}trail-building/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -56,7 +56,7 @@ const base = import.meta.env.BASE_URL;
         </a>
         
         <!-- Pump Track -->
-        <a href={`${base}pump-track`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}pump-track/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -69,7 +69,7 @@ const base = import.meta.env.BASE_URL;
         </a>
         
         <!-- Bike Train -->
-        <a href={`${base}bike-train`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}bike-train/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -82,7 +82,7 @@ const base = import.meta.env.BASE_URL;
         </a>
         
         <!-- Bike Clinics -->
-        <a href={`${base}clinics`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}clinics/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -96,7 +96,7 @@ const base = import.meta.env.BASE_URL;
         </a>
         
         <!-- Afterschool Programs -->
-        <a href={`${base}afterschool`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}afterschool/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -109,7 +109,7 @@ const base = import.meta.env.BASE_URL;
         </a>
         
         <!-- Leaderboard -->
-        <a href={`${base}leaderboard`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+        <a href={`${base}leaderboard/`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
             <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -175,10 +175,10 @@ const base = import.meta.env.BASE_URL;
         <div>
           <h3 class="text-xl font-bold mb-4">Quick Links</h3>
           <ul class="space-y-2 text-gray-400">
-            <li><a href={`${base}trail-building`} class="hover:text-white transition">Trail Building</a></li>
-            <li><a href={`${base}pump-track`} class="hover:text-white transition">Pump Track</a></li>
-            <li><a href={`${base}bike-train`} class="hover:text-white transition">Bike Train</a></li>
-            <li><a href={`${base}leaderboard`} class="hover:text-white transition">Leaderboard</a></li>
+            <li><a href={`${base}trail-building/`} class="hover:text-white transition">Trail Building</a></li>
+            <li><a href={`${base}pump-track/`} class="hover:text-white transition">Pump Track</a></li>
+            <li><a href={`${base}bike-train/`} class="hover:text-white transition">Bike Train</a></li>
+            <li><a href={`${base}leaderboard/`} class="hover:text-white transition">Leaderboard</a></li>
           </ul>
         </div>
         <div>
