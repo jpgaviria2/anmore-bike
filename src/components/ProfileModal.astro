@@ -1,0 +1,358 @@
+---
+// Profile Creation Modal Component
+---
+
+<div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Create Your Profile</h2>
+    <p class="text-gray-600 mb-6">
+      Tell us a bit about yourself. This helps us build a strong community and recognize contributors.
+    </p>
+    
+    <form id="profile-form" class="space-y-4">
+      <!-- Opt-in for public name -->
+      <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" id="opt-in" name="optIn" class="mt-1 w-5 h-5 text-green-600 rounded">
+          <div>
+            <span class="font-semibold text-gray-900">Share my name publicly</span>
+            <p class="text-sm text-gray-600 mt-1">
+              If unchecked, you'll appear as "bikeuser" on the leaderboard. You can change this later.
+            </p>
+          </div>
+        </label>
+      </div>
+      
+      <!-- Name field -->
+      <div id="name-field" class="hidden">
+        <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
+          Your Name
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          placeholder="John Smith"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+        />
+      </div>
+      
+      <!-- Contact info (private) -->
+      <div>
+        <label for="contact" class="block text-sm font-semibold text-gray-700 mb-2">
+          Preferred Contact <span class="text-gray-500 font-normal">(optional, private)</span>
+        </label>
+        <input 
+          type="text" 
+          id="contact" 
+          name="contact" 
+          placeholder="Email or phone"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+        />
+      </div>
+      
+      <!-- Bio -->
+      <div>
+        <label for="bio" class="block text-sm font-semibold text-gray-700 mb-2">
+          About You <span class="text-gray-500 font-normal">(optional)</span>
+        </label>
+        <textarea 
+          id="bio" 
+          name="bio" 
+          rows="3"
+          placeholder="Tell us about your interest in biking..."
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+        ></textarea>
+      </div>
+      
+      <!-- Interests -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">
+          Interests <span class="text-gray-500 font-normal">(select all that apply)</span>
+        </label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="interests" value="trail-building" class="w-4 h-4 text-green-600 rounded">
+            <span class="text-gray-700">Trail Building</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="interests" value="volunteering" class="w-4 h-4 text-green-600 rounded">
+            <span class="text-gray-700">Volunteering</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="interests" value="teaching" class="w-4 h-4 text-green-600 rounded">
+            <span class="text-gray-700">Teaching/Coaching</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="interests" value="riding" class="w-4 h-4 text-green-600 rounded">
+            <span class="text-gray-700">Riding/Recreation</span>
+          </label>
+        </div>
+      </div>
+      
+      <button 
+        type="submit" 
+        class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg"
+      >
+        Create Profile & Continue
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Nsec Display Modal -->
+<div id="nsec-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Submission Successful!</h2>
+      <p class="text-gray-600">Your contribution has been recorded.</p>
+    </div>
+    
+    <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6">
+      <p class="text-sm font-semibold text-gray-900 mb-2">
+        🔑 Keep this secure to track your contributions
+      </p>
+      <p class="text-sm text-gray-600 mb-4">
+        Save this key to appear on the leaderboard and track all your submissions. Anyone with this key can post as you.
+      </p>
+      
+      <div class="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3">
+        <code id="nsec-display" class="text-xs break-all text-gray-800"></code>
+      </div>
+      
+      <div class="flex gap-2">
+        <button 
+          id="copy-nsec" 
+          class="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-green-700 transition"
+        >
+          Copy Key
+        </button>
+        <button 
+          id="show-qr" 
+          class="flex-1 bg-gray-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-gray-700 transition"
+        >
+          Show QR
+        </button>
+      </div>
+    </div>
+    
+    <!-- QR Code -->
+    <div id="qr-code" class="hidden mb-6 text-center">
+      <canvas id="qr-canvas" class="mx-auto border-2 border-gray-300 rounded-lg"></canvas>
+    </div>
+    
+    <button 
+      id="close-nsec" 
+      class="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+    >
+      Close
+    </button>
+  </div>
+</div>
+
+<!-- Nsec Login Modal -->
+<div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Login with Your Key</h2>
+    <p class="text-gray-600 mb-6">
+      Enter your saved nsec key to restore your identity and track your contributions.
+    </p>
+    
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label for="nsec-input" class="block text-sm font-semibold text-gray-700 mb-2">
+          Your nsec Key
+        </label>
+        <input 
+          type="password" 
+          id="nsec-input" 
+          name="nsec" 
+          placeholder="nsec1..."
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition font-mono text-sm"
+          required
+        />
+        <p class="text-xs text-gray-500 mt-2">Starts with "nsec1..."</p>
+      </div>
+      
+      <div id="login-error" class="hidden bg-red-50 border-2 border-red-200 rounded-lg p-3">
+        <p class="text-sm text-red-600"></p>
+      </div>
+      
+      <div class="flex gap-3">
+        <button 
+          type="submit" 
+          class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition"
+        >
+          Login
+        </button>
+        <button 
+          type="button" 
+          id="cancel-login"
+          class="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  import { generateKeypair, storeKeypair, decodeNsec, getStoredKeypair } from '../lib/nostr.ts';
+  import { saveProfile, getProfile, updateProfile, type UserProfile } from '../lib/profile.ts';
+  
+  // Profile Modal Logic
+  const profileModal = document.getElementById('profile-modal');
+  const profileForm = document.getElementById('profile-form') as HTMLFormElement;
+  const optInCheckbox = document.getElementById('opt-in') as HTMLInputElement;
+  const nameField = document.getElementById('name-field');
+  
+  optInCheckbox?.addEventListener('change', () => {
+    if (optInCheckbox.checked) {
+      nameField?.classList.remove('hidden');
+    } else {
+      nameField?.classList.add('hidden');
+    }
+  });
+  
+  profileForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(profileForm);
+    const optIn = formData.get('optIn') === 'on';
+    const name = formData.get('name') as string || 'bikeuser';
+    const contact = formData.get('contact') as string;
+    const bio = formData.get('bio') as string;
+    const interests: string[] = [];
+    
+    formData.getAll('interests').forEach(interest => {
+      interests.push(interest as string);
+    });
+    
+    // Generate keypair
+    const keypair = generateKeypair();
+    storeKeypair(keypair.secretKey);
+    
+    // Save profile
+    const profile: UserProfile = {
+      name: optIn ? name : 'bikeuser',
+      optIn,
+      contact: contact || undefined,
+      bio: bio || undefined,
+      interests,
+      npub: keypair.npub,
+      createdAt: Date.now()
+    };
+    
+    saveProfile(profile);
+    
+    // Hide profile modal
+    profileModal?.classList.add('hidden');
+    
+    // Dispatch event to indicate profile is ready
+    window.dispatchEvent(new CustomEvent('profile-created', { detail: profile }));
+  });
+  
+  // Nsec Display Modal Logic
+  const nsecModal = document.getElementById('nsec-modal');
+  const nsecDisplay = document.getElementById('nsec-display');
+  const copyNsecBtn = document.getElementById('copy-nsec');
+  const showQrBtn = document.getElementById('show-qr');
+  const closeNsecBtn = document.getElementById('close-nsec');
+  const qrCodeDiv = document.getElementById('qr-code');
+  
+  copyNsecBtn?.addEventListener('click', () => {
+    const nsec = nsecDisplay?.textContent;
+    if (nsec) {
+      navigator.clipboard.writeText(nsec);
+      copyNsecBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyNsecBtn.textContent = 'Copy Key';
+      }, 2000);
+    }
+  });
+  
+  showQrBtn?.addEventListener('click', () => {
+    qrCodeDiv?.classList.toggle('hidden');
+  });
+  
+  closeNsecBtn?.addEventListener('click', () => {
+    nsecModal?.classList.add('hidden');
+    qrCodeDiv?.classList.add('hidden');
+  });
+  
+  // Login Modal Logic
+  const loginModal = document.getElementById('login-modal');
+  const loginForm = document.getElementById('login-form') as HTMLFormElement;
+  const loginError = document.getElementById('login-error');
+  const cancelLoginBtn = document.getElementById('cancel-login');
+  
+  loginForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(loginForm);
+    const nsec = formData.get('nsec') as string;
+    
+    const keypair = decodeNsec(nsec);
+    if (!keypair) {
+      loginError?.classList.remove('hidden');
+      const errorText = loginError?.querySelector('p');
+      if (errorText) {
+        errorText.textContent = 'Invalid nsec key. Please check and try again.';
+      }
+      return;
+    }
+    
+    // Store keypair
+    storeKeypair(keypair.secretKey);
+    
+    // Check if profile exists, if not create new one
+    let profile = getProfile();
+    if (!profile || profile.npub !== keypair.npub) {
+      profile = {
+        name: 'bikeuser',
+        optIn: false,
+        interests: [],
+        npub: keypair.npub,
+        createdAt: Date.now()
+      };
+      saveProfile(profile);
+    }
+    
+    // Hide login modal
+    loginModal?.classList.add('hidden');
+    loginError?.classList.add('hidden');
+    
+    // Dispatch login event
+    window.dispatchEvent(new CustomEvent('user-logged-in', { detail: profile }));
+    
+    alert('Logged in successfully!');
+  });
+  
+  cancelLoginBtn?.addEventListener('click', () => {
+    loginModal?.classList.add('hidden');
+    loginError?.classList.add('hidden');
+    loginForm?.reset();
+  });
+  
+  // Export functions for use in other pages
+  (window as any).showProfileModal = () => {
+    profileModal?.classList.remove('hidden');
+  };
+  
+  (window as any).showNsecModal = (nsec: string) => {
+    if (nsecDisplay) {
+      nsecDisplay.textContent = nsec;
+    }
+    nsecModal?.classList.remove('hidden');
+  };
+  
+  (window as any).showLoginModal = () => {
+    loginModal?.classList.remove('hidden');
+  };
+</script>

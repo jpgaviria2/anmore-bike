@@ -1,0 +1,719 @@
+---
+/**
+ * Bike Train Coordination Page
+ * 
+ * Enables parents and volunteers to:
+ * - Draw safe routes to/from schools
+ * - Share route details with safety information
+ * - Coordinate bike train schedules
+ * - Sign up as route coordinators
+ * 
+ * Collects comprehensive OSM route data:
+ * - Cycleway infrastructure
+ * - Crossing types and traffic calming
+ * - Surface conditions and hazards
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import ProfileModal from '../components/ProfileModal.astro';
+---
+
+<Layout title="Bike Train to School - Anmore.bike">
+  <Navigation />
+  <ProfileModal />
+  
+  <div class="container mx-auto px-4 py-8 md:py-12">
+    <!-- Header -->
+    <div class="max-w-4xl mx-auto mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        Bike Train to School
+      </h1>
+      <p class="text-lg text-gray-700 mb-4">
+        Organize safe group rides to school! A "bike train" is a group of children riding together 
+        along a set route, supervised by adult volunteers. Share your route, coordinate schedules, 
+        and help kids bike safely to school.
+      </p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+          <h3 class="font-bold text-green-900 mb-2">🚴 Benefits of Bike Trains</h3>
+          <ul class="text-sm text-green-800 space-y-1">
+            <li>• Safety in numbers</li>
+            <li>• Build cycling confidence</li>
+            <li>• Reduce car traffic at schools</li>
+            <li>• Social & environmental benefits</li>
+          </ul>
+        </div>
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+          <h3 class="font-bold text-blue-900 mb-2">📍 Route Planning Tips</h3>
+          <ul class="text-sm text-blue-800 space-y-1">
+            <li>• Use quiet residential streets</li>
+            <li>• Look for bike lanes or wide shoulders</li>
+            <li>• Minimize busy intersection crossings</li>
+            <li>• Choose well-lit, visible routes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User Status Bar -->
+    <div id="user-status" class="max-w-4xl mx-auto mb-6 bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">Logged in as</p>
+          <p id="display-name" class="font-semibold text-gray-900">bikeuser</p>
+        </div>
+      </div>
+      <button id="login-btn" class="text-green-600 hover:text-green-700 font-semibold text-sm">
+        Login with Key
+      </button>
+    </div>
+    
+    <!-- Map Section -->
+    <div class="max-w-6xl mx-auto mb-8">
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-green-600 text-white p-4">
+          <h2 class="text-xl font-bold">Interactive Route Map</h2>
+          <p class="text-sm text-green-100 mt-1">
+            Draw your bike train route from start to finish. Use markers to note important locations.
+          </p>
+        </div>
+        <div id="map" class="h-[500px] md:h-[600px]"></div>
+        <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
+          <div class="flex flex-wrap gap-2 items-center justify-between">
+            <div class="flex gap-2 items-center text-sm text-gray-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Draw the route line and add markers for start/end points</span>
+            </div>
+            <button id="clear-map" class="text-red-600 hover:text-red-700 font-semibold text-sm">
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Form Section -->
+    <div class="max-w-4xl mx-auto">
+      <form id="bike-train-form" class="bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Bike Train Route Details</h2>
+        
+        <!-- Basic Info -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label for="route-name" class="block text-sm font-semibold text-gray-700 mb-2">
+              Route Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="route-name" 
+              name="routeName" 
+              required
+              placeholder="e.g., Sunnyside to Anmore Elementary"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+          </div>
+          
+          <div>
+            <label for="school" class="block text-sm font-semibold text-gray-700 mb-2">
+              School <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="school" 
+              name="school" 
+              required
+              placeholder="Anmore Elementary"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+          </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label for="start-location" class="block text-sm font-semibold text-gray-700 mb-2">
+              Start Location/Address <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="start-location" 
+              name="startLocation" 
+              required
+              placeholder="123 Main St or landmark name"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+          </div>
+          
+          <div>
+            <label for="end-location" class="block text-sm font-semibold text-gray-700 mb-2">
+              End Location/Address <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="end-location" 
+              name="endLocation" 
+              required
+              placeholder="School entrance or meeting point"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+          </div>
+        </div>
+        
+        <!-- OSM Route Metadata -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Route Characteristics (OpenStreetMap Data)</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <label for="cycleway-type" class="block text-sm font-semibold text-gray-700 mb-2">
+                Bike Infrastructure Type
+              </label>
+              <select 
+                id="cycleway-type" 
+                name="cyclewayType"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select type...</option>
+                <option value="lane">Bike Lane (painted on road)</option>
+                <option value="track">Protected Bike Track</option>
+                <option value="shared_lane">Shared Lane (sharrows)</option>
+                <option value="opposite">Opposite Direction Lane</option>
+                <option value="none">No bike infrastructure</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">OSM tag: cycleway=*</p>
+            </div>
+            
+            <div>
+              <label for="surface" class="block text-sm font-semibold text-gray-700 mb-2">
+                Surface Condition
+              </label>
+              <select 
+                id="surface" 
+                name="surface"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select surface...</option>
+                <option value="asphalt">Asphalt (good condition)</option>
+                <option value="paved">Paved</option>
+                <option value="concrete">Concrete</option>
+                <option value="gravel">Gravel</option>
+                <option value="unpaved">Unpaved</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">OSM tag: surface=*</p>
+            </div>
+            
+            <div>
+              <label for="lit" class="block text-sm font-semibold text-gray-700 mb-2">
+                Street Lighting?
+              </label>
+              <select 
+                id="lit" 
+                name="lit"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select...</option>
+                <option value="yes">Yes - Well lit</option>
+                <option value="limited">Limited lighting</option>
+                <option value="no">No lighting</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">Important for winter mornings</p>
+            </div>
+            
+            <div>
+              <label for="maxspeed" class="block text-sm font-semibold text-gray-700 mb-2">
+                Speed Limit (km/h)
+              </label>
+              <input 
+                type="number" 
+                id="maxspeed" 
+                name="maxspeed" 
+                placeholder="30"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              />
+              <p class="text-xs text-gray-500 mt-1">OSM tag: maxspeed=*</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Crossings & Safety Features -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Crossings & Safety Features</h3>
+          
+          <div class="space-y-4 mb-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                Types of crossings on this route:
+              </label>
+              <div class="grid md:grid-cols-2 gap-3">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="crossings" value="traffic_signals" class="w-4 h-4 text-green-600 rounded">
+                  <span>Traffic Signals (lights)</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="crossings" value="marked" class="w-4 h-4 text-green-600 rounded">
+                  <span>Marked Crosswalk</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="crossings" value="unmarked" class="w-4 h-4 text-green-600 rounded">
+                  <span>Unmarked Crossing</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="crossings" value="island" class="w-4 h-4 text-green-600 rounded">
+                  <span>Crossing with Island</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="crossings" value="uncontrolled" class="w-4 h-4 text-green-600 rounded">
+                  <span>Uncontrolled Intersection</span>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                Traffic calming features present:
+              </label>
+              <div class="grid md:grid-cols-2 gap-3">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="bump" class="w-4 h-4 text-green-600 rounded">
+                  <span>Speed Bumps</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="hump" class="w-4 h-4 text-green-600 rounded">
+                  <span>Speed Humps</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="chicane" class="w-4 h-4 text-green-600 rounded">
+                  <span>Chicanes</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="choker" class="w-4 h-4 text-green-600 rounded">
+                  <span>Chokers/Narrowing</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="table" class="w-4 h-4 text-green-600 rounded">
+                  <span>Raised Table</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" name="trafficCalming" value="none" class="w-4 h-4 text-green-600 rounded">
+                  <span>None</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label for="hazards" class="block text-sm font-semibold text-gray-700 mb-2">
+              Known Hazards or Difficult Sections
+            </label>
+            <textarea 
+              id="hazards" 
+              name="hazards" 
+              rows="3"
+              placeholder="List any steep hills, busy intersections, blind corners, narrow sections, or other concerns..."
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+            ></textarea>
+          </div>
+        </div>
+        
+        <!-- Route Details -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Route Details</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <label for="distance" class="block text-sm font-semibold text-gray-700 mb-2">
+                Approximate Distance (km)
+              </label>
+              <input 
+                type="number" 
+                id="distance" 
+                name="distance" 
+                step="0.1"
+                placeholder="2.5"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              />
+            </div>
+            
+            <div>
+              <label for="duration" class="block text-sm font-semibold text-gray-700 mb-2">
+                Typical Duration (minutes)
+              </label>
+              <input 
+                type="number" 
+                id="duration" 
+                name="duration" 
+                placeholder="15"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              />
+            </div>
+            
+            <div>
+              <label for="age-suitability" class="block text-sm font-semibold text-gray-700 mb-2">
+                Suitable for Ages
+              </label>
+              <select 
+                id="age-suitability" 
+                name="ageSuitability"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select age range...</option>
+                <option value="5+">5+ (kindergarten)</option>
+                <option value="7+">7+ (grade 2+)</option>
+                <option value="10+">10+ (grade 5+)</option>
+                <option value="all">All ages</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="difficulty" class="block text-sm font-semibold text-gray-700 mb-2">
+                Difficulty Level
+              </label>
+              <select 
+                id="difficulty" 
+                name="difficulty"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select difficulty...</option>
+                <option value="easy">Easy - Flat, quiet streets</option>
+                <option value="moderate">Moderate - Some hills/traffic</option>
+                <option value="challenging">Challenging - Hills/busy roads</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <label for="parking" class="block text-sm font-semibold text-gray-700 mb-2">
+              Parking at Start Point?
+            </label>
+            <input 
+              type="text" 
+              id="parking" 
+              name="parking" 
+              placeholder="Street parking available, or specific lot location"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+          </div>
+        </div>
+        
+        <!-- Schedule Information -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Schedule & Coordination</h3>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <label for="departure-time" class="block text-sm font-semibold text-gray-700 mb-2">
+                Departure Time
+              </label>
+              <input 
+                type="time" 
+                id="departure-time" 
+                name="departureTime" 
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              />
+            </div>
+            
+            <div>
+              <label for="frequency" class="block text-sm font-semibold text-gray-700 mb-2">
+                Frequency
+              </label>
+              <select 
+                id="frequency" 
+                name="frequency"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              >
+                <option value="">Select frequency...</option>
+                <option value="daily">Daily (Mon-Fri)</option>
+                <option value="weekly">Weekly (specific day)</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="occasional">Occasional/On-demand</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <label for="weather-contingency" class="block text-sm font-semibold text-gray-700 mb-2">
+              Weather/Winter Plan
+            </label>
+            <textarea 
+              id="weather-contingency" 
+              name="weatherContingency" 
+              rows="2"
+              placeholder="e.g., Cancel if raining, winter routes available, check group chat for updates..."
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+            ></textarea>
+          </div>
+          
+          <div class="mt-6">
+            <label for="max-participants" class="block text-sm font-semibold text-gray-700 mb-2">
+              Maximum Participants
+            </label>
+            <input 
+              type="number" 
+              id="max-participants" 
+              name="maxParticipants" 
+              placeholder="10"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+            <p class="text-xs text-gray-500 mt-1">Recommended: 1 adult per 5-8 children</p>
+          </div>
+        </div>
+        
+        <!-- Coordinator Information -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+            <h3 class="font-bold text-green-900 mb-2">🚴‍♀️ Become a Route Coordinator</h3>
+            <p class="text-sm text-green-800">
+              Route coordinators lead the bike train, ensure safety, and communicate with families. 
+              Adult volunteers are essential for bike trains to succeed!
+            </p>
+          </div>
+          
+          <label class="flex items-start gap-3 cursor-pointer mb-4">
+            <input type="checkbox" id="coordinator-volunteer" name="coordinatorVolunteer" class="mt-1 w-5 h-5 text-green-600 rounded">
+            <div>
+              <span class="font-semibold text-gray-900">I can volunteer as a coordinator</span>
+              <p class="text-sm text-gray-600 mt-1">
+                I'm willing to lead this bike train route (requires availability during school mornings)
+              </p>
+            </div>
+          </label>
+          
+          <div>
+            <label for="additional-notes" class="block text-sm font-semibold text-gray-700 mb-2">
+              Additional Notes or Questions
+            </label>
+            <textarea 
+              id="additional-notes" 
+              name="additionalNotes" 
+              rows="3"
+              placeholder="Any other information about this route, coordination needs, or questions..."
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"
+            ></textarea>
+          </div>
+        </div>
+        
+        <!-- Optional Email -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+            Email for Coordination <span class="text-gray-500 font-normal">(optional)</span>
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="your@email.com"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+          />
+          <p class="text-sm text-gray-500 mt-2">
+            We'll use this to connect you with other families interested in this route
+          </p>
+        </div>
+        
+        <!-- Submit -->
+        <div class="pt-4">
+          <button 
+            type="submit" 
+            class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            Submit Bike Train Route
+          </button>
+          <p class="text-sm text-gray-500 text-center mt-3">
+            Your submission will be sent securely via Nostr protocol
+          </p>
+        </div>
+        
+        <!-- Progress indicator -->
+        <div id="submit-progress" class="hidden">
+          <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+            <p id="progress-text" class="text-sm text-blue-900 text-center"></p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Load Leaflet and scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  
+  <script>
+    import { sendEncryptedDM, formatFormAsHTML } from '../lib/nostr.ts';
+    import { getProfile, getDisplayName } from '../lib/profile.ts';
+    import { getStoredKeypair } from '../lib/nostr.ts';
+    
+    // Initialize map centered on Anmore
+    const map = L.map('map').setView([49.325, -122.86], 14);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+    
+    // Add drawing tools (primarily polyline for routes)
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems
+      },
+      draw: {
+        polygon: false,
+        circle: false,
+        rectangle: false,
+        circlemarker: false,
+        polyline: true,  // Main tool for drawing routes
+        marker: {
+          icon: L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+          })
+        }
+      }
+    });
+    map.addControl(drawControl);
+    
+    map.on('draw:created', (e) => {
+      drawnItems.addLayer(e.layer);
+    });
+    
+    // Clear map button
+    document.getElementById('clear-map')?.addEventListener('click', () => {
+      drawnItems.clearLayers();
+    });
+    
+    // Update display name
+    function updateDisplayName() {
+      const profile = getProfile();
+      const displayNameEl = document.getElementById('display-name');
+      if (displayNameEl) {
+        displayNameEl.textContent = getDisplayName(profile);
+      }
+    }
+    
+    updateDisplayName();
+    
+    // Login button
+    document.getElementById('login-btn')?.addEventListener('click', () => {
+      (window as any).showLoginModal();
+    });
+    
+    // Listen for login events
+    window.addEventListener('user-logged-in', () => {
+      updateDisplayName();
+    });
+    
+    // Form submission
+    const form = document.getElementById('bike-train-form') as HTMLFormElement;
+    const submitProgress = document.getElementById('submit-progress');
+    const progressText = document.getElementById('progress-text');
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Check if user has profile/keypair
+      let keypair = getStoredKeypair();
+      let profile = getProfile();
+      
+      if (!keypair || !profile) {
+        (window as any).showProfileModal();
+        await new Promise((resolve) => {
+          window.addEventListener('profile-created', resolve, { once: true });
+        });
+        keypair = getStoredKeypair();
+        profile = getProfile();
+      }
+      
+      if (!keypair || !profile) {
+        alert('Failed to create profile. Please try again.');
+        return;
+      }
+      
+      // Collect form data
+      const formData = new FormData(form);
+      const bikeTrainData: any = {};
+      
+      // Collect arrays
+      const crossings: string[] = [];
+      formData.getAll('crossings').forEach(c => crossings.push(c as string));
+      const trafficCalming: string[] = [];
+      formData.getAll('trafficCalming').forEach(tc => trafficCalming.push(tc as string));
+      
+      formData.forEach((value, key) => {
+        if (key === 'crossings') {
+          bikeTrainData.crossings = crossings.join(', ');
+        } else if (key === 'trafficCalming') {
+          bikeTrainData.trafficCalming = trafficCalming.join(', ');
+        } else if (value) {
+          bikeTrainData[key] = value;
+        }
+      });
+      
+      // Add OSM-specific tags
+      bikeTrainData.osmTags = {
+        route: 'bicycle',
+        type: 'route',
+        network: 'local',
+        cycleway: bikeTrainData.cyclewayType,
+        surface: bikeTrainData.surface,
+        lit: bikeTrainData.lit,
+        maxspeed: bikeTrainData.maxspeed
+      };
+      
+      // Get GeoJSON from map
+      const geoJSON = drawnItems.toGeoJSON();
+      
+      // Format message
+      const messageData = {
+        profile,
+        formType: 'Bike Train Route',
+        formData: bikeTrainData,
+        geoJSON: geoJSON.features.length > 0 ? geoJSON : undefined,
+        email: bikeTrainData.email
+      };
+      
+      const htmlMessage = formatFormAsHTML(messageData);
+      
+      // Show progress
+      submitProgress?.classList.remove('hidden');
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      if (submitBtn) submitBtn.disabled = true;
+      
+      // Send via Nostr
+      const success = await sendEncryptedDM(
+        keypair.secretKey,
+        htmlMessage,
+        (status) => {
+          if (progressText) progressText.textContent = status;
+        }
+      );
+      
+      if (success) {
+        const isFirstSubmission = !localStorage.getItem('has_submitted');
+        if (isFirstSubmission) {
+          (window as any).showNsecModal(keypair.nsec);
+          localStorage.setItem('has_submitted', 'true');
+        } else {
+          alert('Bike train route submitted successfully!');
+        }
+        
+        form.reset();
+        drawnItems.clearLayers();
+      } else {
+        alert('Failed to submit. Please check your connection and try again.');
+      }
+      
+      // Hide progress
+      submitProgress?.classList.add('hidden');
+      if (submitBtn) submitBtn.disabled = false;
+    });
+  </script>
+</Layout>

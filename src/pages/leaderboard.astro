@@ -1,0 +1,406 @@
+---
+/**
+ * Leaderboard Page
+ * 
+ * Display contributor statistics and achievements.
+ * Features: Top contributors, activity feed, achievement badges
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="Community Leaderboard - Anmore.bike">
+  <Navigation />
+  
+  <div class="container mx-auto px-4 py-8 md:py-12 max-w-6xl">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Community Leaderboard</h1>
+      <p class="text-lg text-gray-700 max-w-2xl mx-auto">
+        Celebrating our contributors building a better bike community in Anmore!
+      </p>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white border-2 border-green-200 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-green-600" id="total-contributors">0</div>
+        <div class="text-sm text-gray-600 mt-1">Contributors</div>
+      </div>
+      <div class="bg-white border-2 border-blue-200 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-blue-600" id="total-submissions">0</div>
+        <div class="text-sm text-gray-600 mt-1">Submissions</div>
+      </div>
+      <div class="bg-white border-2 border-purple-200 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-purple-600" id="this-month">0</div>
+        <div class="text-sm text-gray-600 mt-1">This Month</div>
+      </div>
+      <div class="bg-white border-2 border-orange-200 rounded-lg p-4 text-center">
+        <div class="text-3xl font-bold text-orange-600" id="trail-proposals">0</div>
+        <div class="text-sm text-gray-600 mt-1">Trail Ideas</div>
+      </div>
+    </div>
+    
+    <!-- Time Filter -->
+    <div class="flex justify-center gap-2 mb-6">
+      <button class="filter-btn active px-6 py-2 rounded-lg font-semibold text-sm transition" data-filter="all">
+        All Time
+      </button>
+      <button class="filter-btn px-6 py-2 rounded-lg font-semibold text-sm transition" data-filter="month">
+        This Month
+      </button>
+      <button class="filter-btn px-6 py-2 rounded-lg font-semibold text-sm transition" data-filter="week">
+        This Week
+      </button>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="bg-green-600 text-white px-6 py-4">
+        <h2 class="text-xl font-bold">Top Contributors</h2>
+      </div>
+      
+      <div id="leaderboard-loading" class="p-12 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
+        <p class="text-gray-600 mt-4">Loading contributors...</p>
+      </div>
+      
+      <div id="leaderboard-error" class="hidden p-8 text-center">
+        <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-gray-700 font-semibold mb-2">Unable to load leaderboard</p>
+        <p class="text-gray-600 text-sm mb-4" id="error-message">Please check your connection and try again.</p>
+        <button onclick="location.reload()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
+          Retry
+        </button>
+      </div>
+      
+      <div id="leaderboard-empty" class="hidden p-12 text-center">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <p class="text-gray-700 font-semibold mb-2">No contributors yet</p>
+        <p class="text-gray-600">Be the first to contribute!</p>
+      </div>
+      
+      <div id="leaderboard-list" class="hidden divide-y divide-gray-200">
+        <!-- Will be populated by JavaScript -->
+      </div>
+    </div>
+    
+    <!-- Achievement Badges Info -->
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Achievement Badges</h2>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🚴</div>
+            <div>
+              <div class="font-bold text-gray-900">First Ride</div>
+              <div class="text-xs text-gray-600">First contribution</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🌟</div>
+            <div>
+              <div class="font-bold text-gray-900">Rising Star</div>
+              <div class="text-xs text-gray-600">5 contributions</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">💪</div>
+            <div>
+              <div class="font-bold text-gray-900">Committed</div>
+              <div class="text-xs text-gray-600">10 contributions</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🔥</div>
+            <div>
+              <div class="font-bold text-gray-900">On Fire</div>
+              <div class="text-xs text-gray-600">25 contributions</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">👑</div>
+            <div>
+              <div class="font-bold text-gray-900">Legend</div>
+              <div class="text-xs text-gray-600">50+ contributions</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🛤️</div>
+            <div>
+              <div class="font-bold text-gray-900">Trail Builder</div>
+              <div class="text-xs text-gray-600">Trail proposals</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🎢</div>
+            <div>
+              <div class="font-bold text-gray-900">Pump Pioneer</div>
+              <div class="text-xs text-gray-600">Pump track ideas</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🚂</div>
+            <div>
+              <div class="font-bold text-gray-900">Train Conductor</div>
+              <div class="text-xs text-gray-600">Bike train routes</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-400 transition">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-3xl">🎓</div>
+            <div>
+              <div class="font-bold text-gray-900">Mentor</div>
+              <div class="text-xs text-gray-600">Clinic volunteering</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+        <p class="text-sm text-blue-900">
+          <strong>Note:</strong> Leaderboard data is fetched live from Nostr relays. 
+          To see your contributions, make sure you're using the same profile key (nsec) you used to submit.
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    import { SimplePool, nip19 } from 'nostr-tools';
+    
+    const RECIPIENT_NPUB = 'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2';
+    const RELAYS = ['wss://relay.anmore.me', 'wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
+    
+    interface Contributor {
+      npub: string;
+      displayName: string;
+      count: number;
+      formTypes: { [key: string]: number };
+      timestamps: number[];
+    }
+    
+    function decodeNpub(npub: string): string | null {
+      try {
+        const decoded = nip19.decode(npub);
+        return decoded.type === 'npub' ? decoded.data : null;
+      } catch (e) {
+        return null;
+      }
+    }
+    
+    function getBadge(count: number, formTypes: { [key: string]: number }): string {
+      if (count >= 50) return '👑';
+      if (count >= 25) return '🔥';
+      if (count >= 10) return '💪';
+      if (count >= 5) return '🌟';
+      return '🚴';
+    }
+    
+    function getSpecialBadges(formTypes: { [key: string]: number }): string[] {
+      const badges: string[] = [];
+      if (formTypes['Trail Building'] > 0) badges.push('🛤️');
+      if (formTypes['Pump Track'] > 0) badges.push('🎢');
+      if (formTypes['Bike Train'] > 0) badges.push('🚂');
+      if (formTypes['Bike Clinics'] > 0) badges.push('🎓');
+      return badges;
+    }
+    
+    async function fetchContributors(timeFilter: 'all' | 'month' | 'week'): Promise<Map<string, Contributor>> {
+      const recipientPubkey = decodeNpub(RECIPIENT_NPUB);
+      if (!recipientPubkey) throw new Error('Invalid recipient npub');
+      
+      const pool = new SimplePool();
+      const contributors = new Map<string, Contributor>();
+      
+      let since = 0;
+      const now = Math.floor(Date.now() / 1000);
+      if (timeFilter === 'week') since = now - (7 * 24 * 60 * 60);
+      if (timeFilter === 'month') since = now - (30 * 24 * 60 * 60);
+      
+      const events = await pool.querySync(RELAYS, {
+        kinds: [4],
+        '#p': [recipientPubkey],
+        since,
+        limit: 1000
+      });
+      
+      for (const event of events) {
+        const authorPubkey = event.pubkey;
+        
+        if (!contributors.has(authorPubkey)) {
+          const authorNpub = nip19.npubEncode(authorPubkey);
+          contributors.set(authorPubkey, {
+            npub: authorNpub,
+            displayName: 'bikeuser',
+            count: 0,
+            formTypes: {},
+            timestamps: []
+          });
+        }
+        
+        const contrib = contributors.get(authorPubkey)!;
+        contrib.count++;
+        contrib.timestamps.push(event.created_at);
+        
+        // Try to extract form type from tags
+        const formTypeTag = event.tags.find(t => t[0] === 'form-type');
+        if (formTypeTag && formTypeTag[1]) {
+          const formType = formTypeTag[1];
+          contrib.formTypes[formType] = (contrib.formTypes[formType] || 0) + 1;
+        }
+      }
+      
+      pool.close(RELAYS);
+      return contributors;
+    }
+    
+    function renderLeaderboard(contributors: Map<string, Contributor>) {
+      const loadingEl = document.getElementById('leaderboard-loading');
+      const errorEl = document.getElementById('leaderboard-error');
+      const emptyEl = document.getElementById('leaderboard-empty');
+      const listEl = document.getElementById('leaderboard-list');
+      
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.add('hidden');
+      
+      if (contributors.size === 0) {
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        if (listEl) listEl.classList.add('hidden');
+        return;
+      }
+      
+      if (emptyEl) emptyEl.classList.add('hidden');
+      if (listEl) listEl.classList.remove('hidden');
+      
+      // Sort by contribution count
+      const sorted = Array.from(contributors.values())
+        .sort((a, b) => b.count - a.count);
+      
+      // Update stats
+      const totalContributors = document.getElementById('total-contributors');
+      const totalSubmissions = document.getElementById('total-submissions');
+      const trailProposals = document.getElementById('trail-proposals');
+      
+      if (totalContributors) totalContributors.textContent = contributors.size.toString();
+      if (totalSubmissions) {
+        const total = sorted.reduce((sum, c) => sum + c.count, 0);
+        totalSubmissions.textContent = total.toString();
+      }
+      if (trailProposals) {
+        const trails = sorted.reduce((sum, c) => sum + (c.formTypes['Trail Building'] || 0), 0);
+        trailProposals.textContent = trails.toString();
+      }
+      
+      // Render list
+      const html = sorted.map((contributor, index) => {
+        const badge = getBadge(contributor.count, contributor.formTypes);
+        const specialBadges = getSpecialBadges(contributor.formTypes);
+        const allBadges = [badge, ...specialBadges].join(' ');
+        
+        const rankClasses = index === 0 ? 'bg-yellow-50' : index === 1 ? 'bg-gray-50' : index === 2 ? 'bg-orange-50' : 'bg-white';
+        
+        return `
+          <div class="${rankClasses} px-6 py-4 hover:bg-green-50 transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="text-2xl font-bold text-gray-400 w-8">#${index + 1}</div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+                  ${badge}
+                </div>
+                <div>
+                  <div class="font-bold text-gray-900">${contributor.displayName}</div>
+                  <div class="text-xs text-gray-500 font-mono">${contributor.npub.slice(0, 16)}...</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl font-bold text-green-600">${contributor.count}</div>
+                <div class="text-xs text-gray-500">contributions</div>
+                ${specialBadges.length > 0 ? `<div class="text-sm mt-1">${allBadges}</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      if (listEl) listEl.innerHTML = html;
+    }
+    
+    function showError(message: string) {
+      const loadingEl = document.getElementById('leaderboard-loading');
+      const errorEl = document.getElementById('leaderboard-error');
+      const errorMessage = document.getElementById('error-message');
+      
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.remove('hidden');
+      if (errorMessage) errorMessage.textContent = message;
+    }
+    
+    let currentFilter = 'all';
+    
+    async function loadLeaderboard() {
+      try {
+        const contributors = await fetchContributors(currentFilter as any);
+        renderLeaderboard(contributors);
+      } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        showError(error instanceof Error ? error.message : 'Unknown error occurred');
+      }
+    }
+    
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active', 'bg-green-600', 'text-white');
+          b.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+        });
+        btn.classList.add('active', 'bg-green-600', 'text-white');
+        btn.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+        
+        currentFilter = (btn as HTMLElement).dataset.filter || 'all';
+        loadLeaderboard();
+      });
+    });
+    
+    // Initial load
+    loadLeaderboard();
+  </script>
+  
+  <style>
+    .filter-btn.active {
+      @apply bg-green-600 text-white;
+    }
+    .filter-btn:not(.active) {
+      @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+    }
+  </style>
+</Layout>

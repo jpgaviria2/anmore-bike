@@ -1,17 +1,198 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Anmore.bike - Bike Resources for Anmore BC">
+  <Navigation />
+  
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-br from-green-600 to-green-800 text-white py-16 md:py-24">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          Welcome to Anmore.bike
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 text-green-100">
+          Building a thriving bike community in Anmore BC
+        </p>
+        <p class="text-lg md:text-xl mb-8">
+          A grassroots initiative connecting cyclists, trail builders, and youth programs. 
+          Together we're creating safe trails, pump tracks, and bike-friendly routes—without waiting for funding.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/trail-building" class="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-50 transition shadow-lg">
+            Suggest a Trail
+          </a>
+          <a href="/leaderboard" class="bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-800 transition border-2 border-white">
+            View Contributors
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Main Sections Grid -->
+  <section class="py-16 md:py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
+        What We Offer
+      </h2>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Trail Building -->
+        <a href="/trail-building" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Trail Building & Development</h3>
+          <p class="text-gray-600">
+            Work with TORCA and Parks & Rec to develop new trails in designated park areas. Suggest locations and join volunteer trail days.
+          </p>
+        </a>
+        
+        <!-- Pump Track -->
+        <a href="/pump-track" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Pump Track Ideas</h3>
+          <p class="text-gray-600">
+            Brainstorm pump track locations and designs. Submit your ideas with interactive maps and help make it a reality.
+          </p>
+        </a>
+        
+        <!-- Bike Train -->
+        <a href="/bike-train" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Bike Train to School</h3>
+          <p class="text-gray-600">
+            Organize safe group rides to school. Share routes, coordinate schedules, and volunteer as a bike train leader.
+          </p>
+        </a>
+        
+        <!-- Bike Clinics -->
+        <a href="/clinics" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Bike Clinics</h3>
+          <p class="text-gray-600">
+            Learn bike maintenance, safety skills, and riding techniques. Sign up to teach or attend clinics with TORCA.
+          </p>
+        </a>
+        
+        <!-- Afterschool Programs -->
+        <a href="/afterschool" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Afterschool Programs</h3>
+          <p class="text-gray-600">
+            Youth bike programs with 1st Anmore Scouts and Anmore Youth Group. Register your child or volunteer to help.
+          </p>
+        </a>
+        
+        <!-- Leaderboard -->
+        <a href="/leaderboard" class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
+            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">Contributor Leaderboard</h3>
+          <p class="text-gray-600">
+            Recognize community members making an impact. Track contributions, earn badges, and celebrate local heroes.
+          </p>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- About Section -->
+  <section class="py-16 md:py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8">
+          Community-Driven Initiative
+        </h2>
+        <div class="prose prose-lg max-w-none text-gray-700">
+          <p class="text-center mb-6">
+            This grassroots initiative brings together TORCA (Tri-Cities Off-Road Cycling Association), 
+            Anmore Parks & Recreation Committee, 1st Anmore Scouts, and Anmore Youth Group to create 
+            bike-friendly infrastructure and programs.
+          </p>
+          <p class="text-center">
+            <strong>Our goal:</strong> Make an impact through community action without waiting for funding 
+            or burdening taxpayers. Together we're building trails, organizing programs, and creating 
+            a safer, more connected community for cyclists of all ages.
+          </p>
+        </div>
+        
+        <div class="mt-12 grid sm:grid-cols-3 gap-8 text-center">
+          <div>
+            <div class="text-4xl font-bold text-green-600 mb-2">100%</div>
+            <div class="text-gray-600">Community Funded</div>
+          </div>
+          <div>
+            <div class="text-4xl font-bold text-green-600 mb-2">0</div>
+            <div class="text-gray-600">Tax Dollars Used</div>
+          </div>
+          <div>
+            <div class="text-4xl font-bold text-green-600 mb-2">∞</div>
+            <div class="text-gray-600">Community Impact</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid md:grid-cols-3 gap-8 mb-8">
+        <div>
+          <h3 class="text-xl font-bold mb-4">Anmore.bike</h3>
+          <p class="text-gray-400">
+            Building a thriving bike community in Anmore BC through grassroots action.
+          </p>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="/trail-building" class="hover:text-white transition">Trail Building</a></li>
+            <li><a href="/pump-track" class="hover:text-white transition">Pump Track</a></li>
+            <li><a href="/bike-train" class="hover:text-white transition">Bike Train</a></li>
+            <li><a href="/leaderboard" class="hover:text-white transition">Leaderboard</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold mb-4">Partners</h3>
+          <ul class="space-y-2 text-gray-400">
+            <li>TORCA - Tri-Cities Off-Road Cycling</li>
+            <li>Anmore Parks & Recreation</li>
+            <li>1st Anmore Scouts</li>
+            <li>Anmore Youth Group</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} Anmore.bike - A community initiative</p>
+        <p class="mt-2">Powered by Nostr protocol - Decentralized & serverless</p>
+      </div>
+    </div>
+  </footer>
+</Layout>
