@@ -490,76 +490,71 @@ import ProfileModal from '../components/ProfileModal.astro';
     import { sendEncryptedDM, formatFormAsHTML } from '../lib/nostr.ts';
     import { getProfile, getDisplayName } from '../lib/profile.ts';
     import { getStoredKeypair } from '../lib/nostr.ts';
+    import { ANMORE_CENTER, DEFAULT_ZOOM } from '../lib/config.ts';
     
-    // Initialize map centered on Anmore
-    const map = L.map('map').setView([49.325, -122.86], 14);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19
-    }).addTo(map);
-    
-    // Add drawing tools (polygon and marker for pump track area)
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    
-    const drawControl = new L.Control.Draw({
-      edit: {
-        featureGroup: drawnItems
-      },
-      draw: {
-        polyline: false,
-        circle: false,
-        rectangle: true,
-        circlemarker: false,
-        polygon: true,  // For outlining pump track area
-        marker: {
-          icon: L.icon({
-            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-          })
+    // Wait for Leaflet to load and DOM to be ready
+    window.addEventListener('load', () => {
+      // Initialize map centered on 2697 Sunnyside Rd, Anmore BC
+      const map = (window as any).L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      
+      (window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Add drawing tools (polygon and marker for pump track area)
+      const drawnItems = new (window as any).L.FeatureGroup();
+      map.addLayer(drawnItems);
+      
+      const drawControl = new (window as any).L.Control.Draw({
+        edit: {
+          featureGroup: drawnItems
+        },
+        draw: {
+          polyline: false,
+          circle: false,
+          rectangle: {
+            shapeOptions: {
+              color: '#16a34a',
+              fillColor: '#16a34a',
+              fillOpacity: 0.3
+            }
+          },
+          circlemarker: false,
+          polygon: {
+            shapeOptions: {
+              color: '#16a34a',
+              fillColor: '#16a34a',
+              fillOpacity: 0.3
+            },
+            allowIntersection: false
+          },
+          marker: {
+            icon: (window as any).L.icon({
+              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41]
+            })
+          }
         }
-      }
-    });
-    map.addControl(drawControl);
-    
-    map.on('draw:created', (e: any) => {
-      drawnItems.addLayer(e.layer);
-    });
-    
-    // Clear map button
-    document.getElementById('clear-map')?.addEventListener('click', () => {
-      drawnItems.clearLayers();
-    });
-    
-    // Update display name
-    function updateDisplayName() {
-      const profile = getProfile();
-      const displayNameEl = document.getElementById('display-name');
-      if (displayNameEl) {
-        displayNameEl.textContent = getDisplayName(profile);
-      }
-    }
-    
-    updateDisplayName();
-    
-    // Login button
-    document.getElementById('login-btn')?.addEventListener('click', () => {
-      (window as any).showLoginModal();
-    });
-    
-    // Listen for login events
-    window.addEventListener('user-logged-in', () => {
-      updateDisplayName();
-    });
-    
-    // Form submission
-    const form = document.getElementById('pump-track-form') as HTMLFormElement;
-    const submitProgress = document.getElementById('submit-progress');
-    const progressText = document.getElementById('progress-text');
-    
-    form?.addEventListener('submit', async (e) => {
+      });
+      map.addControl(drawControl);
+      
+      map.on('draw:created', (e: any) => {
+        drawnItems.addLayer(e.layer);
+      });
+      
+      // Clear map button
+      document.getElementById('clear-map')?.addEventListener('click', () => {
+        drawnItems.clearLayers();
+      });
+      
+      // Form submission with map data
+      const form = document.getElementById('pump-track-form') as HTMLFormElement;
+      const submitProgress = document.getElementById('submit-progress');
+      const progressText = document.getElementById('progress-text');
+      
+      form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       // Check if user has profile/keypair
@@ -616,54 +611,76 @@ import ProfileModal from '../components/ProfileModal.astro';
         opening_hours: pumpTrackData.openingHours
       };
       
-      // Get GeoJSON from map
-      const geoJSON = drawnItems.toGeoJSON();
-      
-      // Format message
-      const messageData = {
-        profile,
-        formType: 'Pump Track Proposal',
-        formData: pumpTrackData,
-        geoJSON: geoJSON.features.length > 0 ? geoJSON : undefined,
-        email: pumpTrackData.email
-      };
-      
-      const htmlMessage = formatFormAsHTML(messageData);
-      
-      // Show progress
-      submitProgress?.classList.remove('hidden');
-      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-      if (submitBtn) submitBtn.disabled = true;
-      
-      // Send via Nostr
-      const success = await sendEncryptedDM(
-        keypair.secretKey,
-        htmlMessage,
-        (status) => {
-          if (progressText) progressText.textContent = status;
-        }
-      );
-      
-      if (success) {
-        // Show nsec modal for first-time users
-        const isFirstSubmission = !localStorage.getItem('has_submitted');
-        if (isFirstSubmission) {
-          (window as any).showNsecModal(keypair.nsec);
-          localStorage.setItem('has_submitted', 'true');
+        // Get GeoJSON from map
+        const geoJSON = drawnItems.toGeoJSON();
+        
+        // Format message
+        const messageData = {
+          profile,
+          formType: 'Pump Track Proposal',
+          formData: pumpTrackData,
+          geoJSON: (geoJSON as any).features?.length > 0 ? geoJSON : undefined,
+          email: pumpTrackData.email
+        };
+        
+        const htmlMessage = formatFormAsHTML(messageData);
+        
+        // Show progress
+        submitProgress?.classList.remove('hidden');
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitBtn) submitBtn.disabled = true;
+        
+        // Send via Nostr
+        const success = await sendEncryptedDM(
+          keypair.secretKey,
+          htmlMessage,
+          (status) => {
+            if (progressText) progressText.textContent = status;
+          }
+        );
+        
+        if (success) {
+          // Show nsec modal for first-time users
+          const isFirstSubmission = !localStorage.getItem('has_submitted');
+          if (isFirstSubmission) {
+            (window as any).showNsecModal(keypair.nsec);
+            localStorage.setItem('has_submitted', 'true');
+          } else {
+            alert('Pump track proposal submitted successfully!');
+          }
+          
+          // Reset form
+          form.reset();
+          drawnItems.clearLayers();
         } else {
-          alert('Pump track proposal submitted successfully!');
+          alert('Failed to submit. Please check your connection and try again.');
         }
         
-        // Reset form
-        form.reset();
-        drawnItems.clearLayers();
-      } else {
-        alert('Failed to submit. Please check your connection and try again.');
+        // Hide progress
+        submitProgress?.classList.add('hidden');
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    });
+    
+    // Update display name
+    function updateDisplayName() {
+      const profile = getProfile();
+      const displayNameEl = document.getElementById('display-name');
+      if (displayNameEl) {
+        displayNameEl.textContent = getDisplayName(profile);
       }
-      
-      // Hide progress
-      submitProgress?.classList.add('hidden');
-      if (submitBtn) submitBtn.disabled = false;
+    }
+    
+    updateDisplayName();
+    
+    // Login button
+    document.getElementById('login-btn')?.addEventListener('click', () => {
+      (window as any).showLoginModal();
+    });
+    
+    // Listen for login events
+    window.addEventListener('user-logged-in', () => {
+      updateDisplayName();
     });
   </script>
 </Layout>

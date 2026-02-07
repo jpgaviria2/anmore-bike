@@ -3,17 +3,13 @@ import { finalizeEvent, type EventTemplate } from 'nostr-tools/pure';
 import * as nip19 from 'nostr-tools/nip19';
 import * as nip04 from 'nostr-tools/nip04';
 import { SimplePool } from 'nostr-tools/pool';
+import { NOSTR_RELAYS, RECIPIENT_NPUB } from './config.ts';
 
-// Relay configuration
-export const RELAYS = [
-  'wss://relay.anmore.me', // Primary relay
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.primal.net'
-];
+// Relay configuration (imported from centralized config)
+export const RELAYS = NOSTR_RELAYS;
 
-// Your npub for receiving form submissions
-export const RECIPIENT_NPUB = 'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2';
+// Recipient npub for receiving form submissions (imported from centralized config)
+export { RECIPIENT_NPUB };
 
 // Generate new keypair
 export function generateKeypair(): { secretKey: Uint8Array; publicKey: string; nsec: string; npub: string } {
