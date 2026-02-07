@@ -486,27 +486,33 @@ import ProfileModal from '../components/ProfileModal.astro';
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   
-  <script>
-    import { sendEncryptedDM, formatFormAsHTML } from '../lib/nostr.ts';
-    import { getProfile, getDisplayName } from '../lib/profile.ts';
-    import { getStoredKeypair } from '../lib/nostr.ts';
-    import { ANMORE_CENTER, DEFAULT_ZOOM } from '../lib/config.ts';
+  <script is:inline>
+    // Hardcoded config to avoid module bundling issues
+    const ANMORE_CENTER = { lat: 49.3257, lng: -122.8565 };
+    const DEFAULT_ZOOM = 14;
     
     // Wait for Leaflet to load and DOM to be ready
     window.addEventListener('load', () => {
-      // Initialize map centered on 2697 Sunnyside Rd, Anmore BC
-      const map = (window as any).L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      // Debug: Check if Leaflet and Leaflet.draw are loaded
+      if (typeof L === 'undefined' || !L.Control || !L.Control.Draw) {
+        console.error('❌ Leaflet or Leaflet.draw not loaded');
+        return;
+      }
+      console.log('✅ Leaflet and Leaflet.draw loaded successfully');
       
-      (window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Initialize map centered on 2697 Sunnyside Rd, Anmore BC
+      const map = L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map);
       
       // Add drawing tools (polygon and marker for pump track area)
-      const drawnItems = new (window as any).L.FeatureGroup();
+      const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
       
-      const drawControl = new (window as any).L.Control.Draw({
+      const drawControl = new L.Control.Draw({
         edit: {
           featureGroup: drawnItems
         },
@@ -530,7 +536,7 @@ import ProfileModal from '../components/ProfileModal.astro';
             allowIntersection: false
           },
           marker: {
-            icon: (window as any).L.icon({
+            icon: L.icon({
               iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
               iconSize: [25, 41],
               iconAnchor: [12, 41]
