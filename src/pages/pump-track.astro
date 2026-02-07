@@ -487,21 +487,24 @@ import ProfileModal from '../components/ProfileModal.astro';
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   
   <script is:inline>
-    // Hardcoded config to avoid module bundling issues
+    // Global variables
+    window.pumpTrackMap = null;
+    window.pumpTrackDrawnItems = null;
+    
+    // Hardcoded config
     const ANMORE_CENTER = { lat: 49.3257, lng: -122.8565 };
     const DEFAULT_ZOOM = 14;
     
-    // Wait for Leaflet to load and DOM to be ready
+    // Initialize map when Leaflet is loaded
     window.addEventListener('load', () => {
-      // Debug: Check if Leaflet and Leaflet.draw are loaded
       if (typeof L === 'undefined' || !L.Control || !L.Control.Draw) {
         console.error('❌ Leaflet or Leaflet.draw not loaded');
         return;
       }
-      console.log('✅ Leaflet and Leaflet.draw loaded successfully');
+      console.log('✅ Leaflet and Leaflet.draw loaded');
       
-      // Initialize map centered on 2697 Sunnyside Rd, Anmore BC
       const map = L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      window.pumpTrackMap = map;
       
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -511,6 +514,7 @@ import ProfileModal from '../components/ProfileModal.astro';
       // Add drawing tools (polygon and marker for pump track area)
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
+      window.pumpTrackDrawnItems = drawnItems;
       
       const drawControl = new L.Control.Draw({
         edit: {
@@ -546,13 +550,33 @@ import ProfileModal from '../components/ProfileModal.astro';
       });
       map.addControl(drawControl);
       
+      map.on('draw:created', function(e) {
+        drawnItems.addLayer(e.layer);
+      });
+    });
+  </script>
+  
+  <script type="module">
+    import { sendEncryptedDM, formatFormAsHTML, getStoredKeypair } from '../lib/nostr.ts';
+    import { getProfile, getDisplayName } from '../lib/profile.ts';
+    
+    window.addEventListener('load', () => {
+              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41]
+            })
+          }
+        }
+      });
+      map.addControl(drawControl);
+      
       map.on('draw:created', (e: any) => {
         drawnItems.addLayer(e.layer);
       });
       
       // Clear map button
       document.getElementById('clear-map')?.addEventListener('click', () => {
-        drawnItems.clearLayers();
+        (window as any).pumpTrackDrawnItems?.clearLayers();
       });
       
       // Form submission with map data
@@ -618,7 +642,7 @@ import ProfileModal from '../components/ProfileModal.astro';
       };
       
         // Get GeoJSON from map
-        const geoJSON = drawnItems.toGeoJSON();
+        const geoJSON = (window as any).pumpTrackDrawnItems.toGeoJSON();
         
         // Format message
         const messageData = {
@@ -657,7 +681,7 @@ import ProfileModal from '../components/ProfileModal.astro';
           
           // Reset form
           form.reset();
-          drawnItems.clearLayers();
+          (window as any).pumpTrackDrawnItems?.clearLayers();
         } else {
           alert('Failed to submit. Please check your connection and try again.');
         }
@@ -687,6 +711,7 @@ import ProfileModal from '../components/ProfileModal.astro';
     // Listen for login events
     window.addEventListener('user-logged-in', () => {
       updateDisplayName();
+    });
     });
   </script>
 </Layout>
