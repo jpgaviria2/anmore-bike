@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Nostr Flow - Anmore.bike</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+    h1 { color: #16a34a; }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover { background: #15803d; }
+    .output {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .info { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Nostr Flow Testing</h1>
+  
+  <div class="test-section">
+    <h2>1. Profile & Keypair Generation</h2>
+    <button onclick="testKeypairGeneration()">Generate Keypair</button>
+    <button onclick="testProfileSave()">Save Profile</button>
+    <button onclick="testProfileLoad()">Load Profile</button>
+    <div id="profile-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>2. Login with Nsec</h2>
+    <input type="text" id="nsec-input" placeholder="nsec1..." style="width: 100%; padding: 10px; margin: 10px 0;">
+    <button onclick="testNsecLogin()">Login with Nsec</button>
+    <div id="login-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>3. Send Test DM</h2>
+    <textarea id="message-input" placeholder="Test message..." style="width: 100%; padding: 10px; margin: 10px 0;" rows="4"></textarea>
+    <button onclick="testSendDM()">Send Encrypted DM</button>
+    <div id="dm-output" class="output"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>4. Modals Test</h2>
+    <button onclick="testNsecModal()">Show Nsec Modal</button>
+    <button onclick="testProfileModal()">Show Profile Modal</button>
+    <button onclick="testLoginModal()">Show Login Modal</button>
+    <div id="modal-output" class="output"></div>
+  </div>
+
+  <script type="module">
+    import { generateSecretKey, getPublicKey, finalizeEvent } from 'https://esm.sh/nostr-tools@2.7.2/pure';
+    import * as nip19 from 'https://esm.sh/nostr-tools@2.7.2/nip19';
+    import * as nip04 from 'https://esm.sh/nostr-tools@2.7.2/nip04';
+    import { SimplePool } from 'https://esm.sh/nostr-tools@2.7.2/pool';
+
+    window.nostrTools = { generateSecretKey, getPublicKey, finalizeEvent, nip19, nip04, SimplePool };
+    
+    const RECIPIENT_NPUB = 'npub1vw25jv3dz23q9hl5j8c7rn47xqxn08sxhhm53xypz7c28hsnwtjqztwk90';
+    const RELAYS = [
+      'wss://relay.damus.io',
+      'wss://nos.lol',
+      'wss://relay.primal.net'
+    ];
+
+    function log(elementId, message, type = 'info') {
+      const output = document.getElementById(elementId);
+      const timestamp = new Date().toLocaleTimeString();
+      const colorClass = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      output.innerHTML += `<span class="${colorClass}">[${timestamp}] ${message}</span>\n`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    window.testKeypairGeneration = function() {
+      const output = document.getElementById('profile-output');
+      output.innerHTML = '';
+      
+      try {
+        const { generateSecretKey, getPublicKey, nip19 } = window.nostrTools;
+        const secretKey = generateSecretKey();
+        const publicKey = getPublicKey(secretKey);
+        const nsec = nip19.nsecEncode(secretKey);
+        const npub = nip19.npubEncode(publicKey);
+        
+        // Store in sessionStorage
+        const hexToBytes = (bytes) => Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        sessionStorage.setItem('nostr_secret_key', hexToBytes(secretKey));
+        
+        log('profile-output', '✅ Keypair generated!', 'success');
+        log('profile-output', `Npub: ${npub}`);
+        log('profile-output', `Nsec: ${nsec.substring(0, 20)}...`);
+        log('profile-output', 'Stored in sessionStorage', 'success');
+      } catch (error) {
+        log('profile-output', `❌ Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testProfileSave = function() {
+      const output = document.getElementById('profile-output');
+      
+      try {
+        const hex = sessionStorage.getItem('nostr_secret_key');
+        if (!hex) {
+          log('profile-output', '⚠️  Generate keypair first!', 'error');
+          return;
+        }
+        
+        const { getPublicKey, nip19 } = window.nostrTools;
+        const bytesFromHex = (hex) => {
+          const bytes = new Uint8Array(hex.length / 2);
+          for (let i = 0; i < hex.length; i += 2) {
+            bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+          }
+          return bytes;
+        };
+        
+        const secretKey = bytesFromHex(hex);
+        const publicKey = getPublicKey(secretKey);
+        const npub = nip19.npubEncode(publicKey);
+        
+        const profile = {
+          name: 'Test User',
+          optIn: true,
+          contact: 'test@example.com',
+          bio: 'Testing Nostr flow',
+          interests: ['testing'],
+          npub: npub,
+          createdAt: Date.now()
+        };
+        
+        localStorage.setItem('anmore_user_profile', JSON.stringify(profile));
+        log('profile-output', '✅ Profile saved to localStorage!', 'success');
+        log('profile-output', JSON.stringify(profile, null, 2));
+      } catch (error) {
+        log('profile-output', `❌ Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testProfileLoad = function() {
+      const output = document.getElementById('profile-output');
+      
+      try {
+        const profileData = localStorage.getItem('anmore_user_profile');
+        if (!profileData) {
+          log('profile-output', '⚠️  No profile found. Save one first!', 'error');
+          return;
+        }
+        
+        const profile = JSON.parse(profileData);
+        log('profile-output', '✅ Profile loaded!', 'success');
+        log('profile-output', JSON.stringify(profile, null, 2));
+      } catch (error) {
+        log('profile-output', `❌ Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testNsecLogin = function() {
+      const output = document.getElementById('login-output');
+      output.innerHTML = '';
+      const nsecInput = document.getElementById('nsec-input');
+      const nsec = nsecInput.value.trim();
+      
+      if (!nsec) {
+        log('login-output', '⚠️  Please enter an nsec', 'error');
+        return;
+      }
+      
+      try {
+        const { getPublicKey, nip19 } = window.nostrTools;
+        const decoded = nip19.decode(nsec);
+        
+        if (decoded.type !== 'nsec') {
+          log('login-output', '❌ Invalid nsec format', 'error');
+          return;
+        }
+        
+        const secretKey = decoded.data;
+        const publicKey = getPublicKey(secretKey);
+        const npub = nip19.npubEncode(publicKey);
+        
+        // Store
+        const hexToBytes = (bytes) => Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        sessionStorage.setItem('nostr_secret_key', hexToBytes(secretKey));
+        
+        log('login-output', '✅ Login successful!', 'success');
+        log('login-output', `Npub: ${npub}`);
+        log('login-output', 'Stored in sessionStorage', 'success');
+      } catch (error) {
+        log('login-output', `❌ Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testSendDM = async function() {
+      const output = document.getElementById('dm-output');
+      output.innerHTML = '';
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value.trim() || 'Test message from browser test';
+      
+      try {
+        const hex = sessionStorage.getItem('nostr_secret_key');
+        if (!hex) {
+          log('dm-output', '⚠️  Generate/login with keypair first!', 'error');
+          return;
+        }
+        
+        const { getPublicKey, finalizeEvent, nip19, nip04, SimplePool } = window.nostrTools;
+        
+        // Get keys
+        const bytesFromHex = (hex) => {
+          const bytes = new Uint8Array(hex.length / 2);
+          for (let i = 0; i < hex.length; i += 2) {
+            bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+          }
+          return bytes;
+        };
+        
+        const secretKey = bytesFromHex(hex);
+        const senderPubkey = getPublicKey(secretKey);
+        
+        log('dm-output', 'Decoding recipient npub...');
+        const recipientDecoded = nip19.decode(RECIPIENT_NPUB);
+        const recipientPubkey = recipientDecoded.data;
+        
+        log('dm-output', 'Encrypting message...');
+        const encryptedContent = await nip04.encrypt(secretKey, recipientPubkey, message);
+        
+        log('dm-output', 'Creating signed event...');
+        const eventTemplate = {
+          kind: 4,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [['p', recipientPubkey]],
+          content: encryptedContent
+        };
+        
+        const signedEvent = finalizeEvent(eventTemplate, secretKey);
+        log('dm-output', `Event ID: ${signedEvent.id}`);
+        
+        log('dm-output', 'Publishing to relays...');
+        const pool = new SimplePool();
+        
+        let successCount = 0;
+        for (const relay of RELAYS) {
+          try {
+            log('dm-output', `Publishing to ${relay}...`);
+            await pool.publish([relay], signedEvent);
+            log('dm-output', `✓ ${relay}`, 'success');
+            successCount++;
+          } catch (error) {
+            log('dm-output', `✗ ${relay}: ${error.message}`, 'error');
+          }
+        }
+        
+        pool.close(RELAYS);
+        log('dm-output', `\n✅ Published to ${successCount}/${RELAYS.length} relays`, 'success');
+        
+      } catch (error) {
+        log('dm-output', `❌ Error: ${error.message}`, 'error');
+        console.error(error);
+      }
+    };
+
+    window.testNsecModal = function() {
+      log('modal-output', 'Nsec modal should be in ProfileModal component');
+      log('modal-output', 'Check if (window as any).showNsecModal exists');
+      log('modal-output', typeof window.showNsecModal !== 'undefined' ? '✅ Function exists' : '❌ Function not found', 
+          typeof window.showNsecModal !== 'undefined' ? 'success' : 'error');
+    };
+
+    window.testProfileModal = function() {
+      log('modal-output', 'Profile modal should be in ProfileModal component');
+      log('modal-output', 'Check if (window as any).showProfileModal exists');
+      log('modal-output', typeof window.showProfileModal !== 'undefined' ? '✅ Function exists' : '❌ Function not found',
+          typeof window.showProfileModal !== 'undefined' ? 'success' : 'error');
+    };
+
+    window.testLoginModal = function() {
+      log('modal-output', 'Login modal should be in ProfileModal component');
+      log('modal-output', 'Check if (window as any).showLoginModal exists');
+      log('modal-output', typeof window.showLoginModal !== 'undefined' ? '✅ Function exists' : '❌ Function not found',
+          typeof window.showLoginModal !== 'undefined' ? 'success' : 'error');
+    };
+
+    // Auto-run on load
+    log('profile-output', 'Test page loaded. Click buttons to test each step.');
+    log('login-output', 'Ready to test login');
+    log('dm-output', 'Ready to test DM sending');
+    log('modal-output', 'Ready to test modals');
+  </script>
+</body>
+</html>
