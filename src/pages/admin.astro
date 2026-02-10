@@ -1,10 +1,11 @@
 ---
 /**
- * Admin Dashboard
+ * Admin Dashboard for Approving Community Submissions
  * 
  * Features:
- * - Login with admin nsec
+ * - Admin login with nsec
  * - View pending submissions (encrypted DMs)
+ * - Review map data and form details
  * - Approve/reject submissions
  * - Publish approved routes as kind:30078 events
  */
@@ -19,44 +20,49 @@ import Navigation from '../components/Navigation.astro';
   <div class="container mx-auto px-4 py-8">
     <!-- Admin Login Section -->
     <div id="login-section" class="max-w-md mx-auto">
-      <div class="bg-white rounded-xl shadow-lg p-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">Admin Login</h1>
-        <div class="space-y-4">
-          <div>
-            <label for="admin-nsec" class="block text-sm font-semibold text-gray-700 mb-2">
-              Admin nsec (Private Key)
-            </label>
-            <input 
-              type="password" 
-              id="admin-nsec" 
-              placeholder="nsec1..."
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
-            />
-            <p class="text-xs text-gray-500 mt-1">
-              Your private key is stored only in your browser and never sent anywhere except to sign events.
-            </p>
-          </div>
-          <button 
-            id="login-btn"
-            class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"
-          >
-            Login as Admin
-          </button>
-          <p id="login-error" class="text-red-600 text-sm hidden"></p>
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
+      <p class="text-gray-700 mb-6">
+        Login with your admin nsec to review and approve community submissions.
+      </p>
+      
+      <div class="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Admin nsec (Private Key)
+          </label>
+          <input 
+            type="password" 
+            id="admin-nsec" 
+            placeholder="nsec1..."
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
+          />
+          <p class="text-sm text-gray-500 mt-2">
+            Your private key stays in your browser and is never sent anywhere.
+          </p>
         </div>
+        
+        <button 
+          id="login-btn"
+          class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"
+        >
+          Login as Admin
+        </button>
+        
+        <p id="login-error" class="text-red-600 text-sm hidden"></p>
       </div>
     </div>
     
     <!-- Admin Panel (hidden until logged in) -->
     <div id="admin-panel" class="hidden">
+      <!-- Header -->
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">Pending Submissions</h1>
-          <p class="text-gray-600 mt-1">Review and approve community submissions</p>
+          <p class="text-gray-600 mt-1">Review and approve community contributions</p>
         </div>
         <button 
           id="logout-btn"
-          class="text-red-600 font-semibold hover:text-red-700 transition"
+          class="text-red-600 font-semibold hover:text-red-700 px-4 py-2 border-2 border-red-600 rounded-lg hover:bg-red-50 transition"
         >
           Logout
         </button>
@@ -64,8 +70,8 @@ import Navigation from '../components/Navigation.astro';
       
       <!-- Loading State -->
       <div id="loading-state" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-        <p class="text-gray-600 mt-4">Loading submissions from relays...</p>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
+        <p class="text-gray-600 mt-4">Loading submissions...</p>
       </div>
       
       <!-- Submissions Grid -->
@@ -74,439 +80,551 @@ import Navigation from '../components/Navigation.astro';
       </div>
       
       <!-- Empty State -->
-      <div id="empty-state" class="hidden text-center py-12 bg-gray-50 rounded-xl">
-        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div id="empty-state" class="hidden text-center py-12">
+        <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <p class="text-gray-600 text-lg font-semibold">No pending submissions</p>
-        <p class="text-gray-500 mt-1">Check back later or refresh to load new submissions</p>
-        <button id="refresh-btn" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
-          Refresh
-        </button>
+        <p class="text-gray-600 text-lg">No pending submissions</p>
+        <p class="text-gray-500 text-sm mt-2">New submissions will appear here automatically</p>
       </div>
     </div>
   </div>
   
   <!-- Approval Modal -->
   <div id="approval-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-6">
-        <div class="flex justify-between items-start mb-4">
-          <h2 class="text-2xl font-bold text-gray-900" id="modal-title">Review Submission</h2>
-          <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
+    <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <!-- Modal Header -->
+      <div class="bg-green-600 text-white p-6 sticky top-0">
+        <h2 class="text-2xl font-bold" id="modal-title">Review Submission</h2>
+      </div>
+      
+      <!-- Modal Content -->
+      <div class="p-6 space-y-6">
         <!-- Map Preview -->
-        <div id="modal-map" class="h-[400px] mb-6 rounded-lg border-2 border-gray-200"></div>
+        <div>
+          <h3 class="font-bold text-lg mb-2">Map Preview</h3>
+          <div id="modal-map" class="h-[400px] rounded-lg border-2 border-gray-300"></div>
+        </div>
         
         <!-- Submission Details -->
-        <div id="modal-details" class="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
-          <!-- Populated dynamically -->
+        <div>
+          <h3 class="font-bold text-lg mb-2">Submission Details</h3>
+          <div id="modal-details" class="bg-gray-50 rounded-lg p-4 space-y-2">
+            <!-- Will be populated dynamically -->
+          </div>
         </div>
         
-        <!-- Admin Actions -->
-        <div class="space-y-4">
-          <div>
-            <label for="admin-note" class="block text-sm font-semibold text-gray-700 mb-2">
-              Admin Note (optional)
-            </label>
-            <textarea 
-              id="admin-note"
-              rows="3"
-              class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
-              placeholder="Add a note for the contributor (e.g., 'Great route! Approved for 2026 build season')"
-            ></textarea>
-          </div>
-          
-          <div class="flex gap-4">
-            <button 
-              id="approve-btn"
-              class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"
-            >
-              ✓ Approve & Publish
-            </button>
-            <button 
-              id="reject-btn"
-              class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition shadow-lg"
-            >
-              ✗ Reject
-            </button>
-          </div>
+        <!-- Admin Note -->
+        <div>
+          <label class="block font-bold text-lg mb-2">Admin Note (Optional)</label>
+          <textarea 
+            id="admin-note"
+            rows="3"
+            placeholder="Add a note for the contributor (e.g., 'Great proposal! Approved for 2026 build season.')"
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none"
+          ></textarea>
+          <p class="text-sm text-gray-500 mt-1">This will be visible to users viewing the approved route</p>
         </div>
+      </div>
+      
+      <!-- Modal Actions -->
+      <div class="bg-gray-50 p-6 flex gap-4 border-t-2 border-gray-200">
+        <button 
+          id="approve-btn"
+          class="flex-1 bg-green-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg"
+        >
+          ✓ Approve & Publish
+        </button>
+        <button 
+          id="reject-btn"
+          class="flex-1 bg-red-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-red-700 transition shadow-lg"
+        >
+          ✗ Reject
+        </button>
+        <button 
+          id="close-modal-btn"
+          class="px-6 py-4 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-100 transition"
+        >
+          Close
+        </button>
       </div>
     </div>
   </div>
+</Layout>
+
+<!-- Load Leaflet for map preview -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+  import { decodeNsec, getStoredKeypair, hexToBytes, bytesToHex } from '../lib/nostr.ts';
+  import { ADMIN_NPUB, ANMORE_CENTER, DEFAULT_ZOOM } from '../lib/config.ts';
+  import { SimplePool } from 'nostr-tools/pool';
+  import { RELAYS } from '../lib/routes.ts';
+  import * as nip19 from 'nostr-tools/nip19';
+  import * as nip04 from 'nostr-tools/nip04';
+  import { finalizeEvent } from 'nostr-tools/pure';
   
-  <!-- Load Leaflet -->
-  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  let adminKeypair = null;
+  let currentSubmissions = [];
+  let currentSubmission = null;
+  let modalMap = null;
   
-  <script type="module">
-    import { decodeNsec, sendEncryptedDM, getRecipientPubkey } from '../lib/nostr.ts';
-    import { isAdmin } from '../lib/config.ts';
-    import { SimplePool } from 'nostr-tools/pool';
-    import { NOSTR_RELAYS } from '../lib/config.ts';
-    import * as nip04 from 'nostr-tools/nip04';
-    import * as nip19 from 'nostr-tools/nip19';
-    import { finalizeEvent } from 'nostr-tools/pure';
-    import { getPublicKey } from 'nostr-tools/pure';
-    
-    let adminKeypair = null;
-    let currentSubmission = null;
-    let modalMap = null;
-    let submissions = [];
-    
-    // Login handler
-    document.getElementById('login-btn')?.addEventListener('click', async () => {
-      const nsecInput = document.getElementById('admin-nsec') as HTMLInputElement;
-      const nsec = nsecInput.value.trim();
-      const errorEl = document.getElementById('login-error');
+  // Check if admin is already logged in (from sessionStorage)
+  const storedAdminKey = sessionStorage.getItem('admin_secret_key');
+  if (storedAdminKey) {
+    try {
+      const secretKey = hexToBytes(storedAdminKey);
+      const decoded = nip19.decode(ADMIN_NPUB);
+      const adminPubkey = decoded.data as string;
+      const publicKey = await import('nostr-tools/pure').then(m => m.getPublicKey(secretKey));
       
-      if (!nsec) {
-        errorEl!.textContent = 'Please enter your admin nsec';
-        errorEl!.classList.remove('hidden');
-        return;
+      if (publicKey === adminPubkey) {
+        adminKeypair = { secretKey, publicKey };
+        showAdminPanel();
       }
-      
-      // Decode and verify
+    } catch (error) {
+      console.error('Failed to restore admin session:', error);
+      sessionStorage.removeItem('admin_secret_key');
+    }
+  }
+  
+  // Login button
+  document.getElementById('login-btn')?.addEventListener('click', async () => {
+    const nsecInput = document.getElementById('admin-nsec') as HTMLInputElement;
+    const errorEl = document.getElementById('login-error');
+    
+    if (!nsecInput || !errorEl) return;
+    
+    const nsec = nsecInput.value.trim();
+    
+    if (!nsec.startsWith('nsec1')) {
+      errorEl.textContent = 'Invalid nsec format. Must start with "nsec1"';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    
+    try {
+      // Decode nsec
       const keypair = decodeNsec(nsec);
       if (!keypair) {
-        errorEl!.textContent = 'Invalid nsec format';
-        errorEl!.classList.remove('hidden');
+        errorEl.textContent = 'Invalid nsec key';
+        errorEl.classList.remove('hidden');
         return;
       }
       
-      // Check if admin
-      if (!isAdmin(keypair.npub)) {
-        errorEl!.textContent = 'You are not authorized as an admin';
-        errorEl!.classList.remove('hidden');
+      // Verify this is the admin key
+      const decoded = nip19.decode(ADMIN_NPUB);
+      const adminPubkey = decoded.data as string;
+      
+      if (keypair.publicKey !== adminPubkey) {
+        errorEl.textContent = 'This is not an authorized admin key';
+        errorEl.classList.remove('hidden');
         return;
       }
       
-      // Store keypair
+      // Store in sessionStorage
       adminKeypair = keypair;
+      sessionStorage.setItem('admin_secret_key', bytesToHex(keypair.secretKey));
       
       // Show admin panel
-      document.getElementById('login-section')!.classList.add('hidden');
-      document.getElementById('admin-panel')!.classList.remove('hidden');
+      showAdminPanel();
       
-      // Load submissions
-      await loadSubmissions();
-    });
+    } catch (error) {
+      console.error('Login error:', error);
+      errorEl.textContent = 'Login failed. Please check your key.';
+      errorEl.classList.remove('hidden');
+    }
+  });
+  
+  // Logout button
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    adminKeypair = null;
+    sessionStorage.removeItem('admin_secret_key');
+    document.getElementById('login-section')?.classList.remove('hidden');
+    document.getElementById('admin-panel')?.classList.add('hidden');
+    (document.getElementById('admin-nsec') as HTMLInputElement).value = '';
+  });
+  
+  // Show admin panel and load submissions
+  async function showAdminPanel() {
+    document.getElementById('login-section')?.classList.add('hidden');
+    document.getElementById('admin-panel')?.classList.remove('hidden');
     
-    // Logout handler
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-      adminKeypair = null;
-      document.getElementById('admin-panel')!.classList.add('hidden');
-      document.getElementById('login-section')!.classList.remove('hidden');
-      (document.getElementById('admin-nsec') as HTMLInputElement).value = '';
-    });
+    await loadPendingSubmissions();
+  }
+  
+  // Load pending submissions (encrypted DMs)
+  async function loadPendingSubmissions() {
+    if (!adminKeypair) return;
     
-    // Load submissions from relays
-    async function loadSubmissions() {
-      const loadingState = document.getElementById('loading-state');
-      const submissionsGrid = document.getElementById('submissions-grid');
-      const emptyState = document.getElementById('empty-state');
+    const loadingState = document.getElementById('loading-state');
+    const submissionsGrid = document.getElementById('submissions-grid');
+    const emptyState = document.getElementById('empty-state');
+    
+    loadingState?.classList.remove('hidden');
+    submissionsGrid?.classList.add('hidden');
+    emptyState?.classList.add('hidden');
+    
+    try {
+      console.log('📥 Loading pending submissions...');
       
-      loadingState!.classList.remove('hidden');
-      submissionsGrid!.classList.add('hidden');
-      emptyState!.classList.add('hidden');
+      const pool = new SimplePool();
       
-      try {
-        const pool = new SimplePool();
-        const recipientPubkey = getRecipientPubkey();
-        
-        // Query for DMs sent to admin
-        const filter = {
-          kinds: [4],
-          '#p': [recipientPubkey],
-          limit: 50
-        };
-        
-        console.log('Querying for submissions...', filter);
-        const events = await pool.querySync(NOSTR_RELAYS, filter);
-        pool.close(NOSTR_RELAYS);
-        
-        console.log(`Found ${events.length} DM events`);
-        
-        // Decrypt and parse submissions
-        submissions = [];
-        for (const event of events) {
-          try {
-            const decrypted = await nip04.decrypt(
-              adminKeypair!.secretKey,
-              event.pubkey,
-              event.content
-            );
-            
-            // Parse HTML to extract form data
+      // Query for DMs sent to admin
+      const filter = {
+        kinds: [4],
+        '#p': [adminKeypair.publicKey],
+        limit: 50
+      };
+      
+      const events = await pool.querySync(RELAYS, filter);
+      pool.close(RELAYS);
+      
+      console.log(`Found ${events.length} DM events`);
+      
+      // Decrypt and parse submissions
+      const submissions = [];
+      
+      for (const event of events) {
+        try {
+          // Decrypt message
+          const decrypted = await nip04.decrypt(
+            adminKeypair.secretKey,
+            event.pubkey,
+            event.content
+          );
+          
+          // Try to parse as HTML submission
+          if (decrypted.includes('Submission')) {
+            // Parse HTML to extract data
             const parser = new DOMParser();
             const doc = parser.parseFromString(decrypted, 'text/html');
             
-            const formType = doc.querySelector('h1')?.textContent || 'Unknown Submission';
-            const contributorNpub = doc.querySelector('.field .value')?.textContent?.trim();
+            // Extract form type
+            const h1 = doc.querySelector('h1');
+            const formType = h1?.textContent?.trim() || 'Unknown';
             
-            // Extract GeoJSON if present
+            // Extract GeoJSON
+            const geoJSONPre = doc.querySelector('pre');
             let geoJSON = null;
-            const geoDataEl = doc.querySelector('.geo-data pre');
-            if (geoDataEl) {
+            if (geoJSONPre) {
               try {
-                geoJSON = JSON.parse(geoDataEl.textContent || '');
+                geoJSON = JSON.parse(geoJSONPre.textContent || '{}');
               } catch (e) {
                 console.error('Failed to parse GeoJSON:', e);
               }
             }
             
-            // Extract form fields
-            const fields = {};
-            doc.querySelectorAll('.field').forEach(field => {
+            // Extract profile info
+            const profileFields = doc.querySelectorAll('.field');
+            const profile = {
+              name: 'bikeuser',
+              npub: event.pubkey
+            };
+            
+            // Extract form data
+            const formData: any = {};
+            profileFields.forEach(field => {
               const label = field.querySelector('.label')?.textContent?.trim();
               const value = field.querySelector('.value')?.textContent?.trim();
               if (label && value) {
-                fields[label] = value;
+                formData[label] = value;
               }
             });
             
             submissions.push({
               id: event.id,
+              timestamp: event.created_at,
+              pubkey: event.pubkey,
               formType,
-              contributorNpub,
               geoJSON,
-              fields,
-              rawHtml: decrypted,
-              timestamp: new Date(event.created_at * 1000)
+              formData,
+              profile,
+              rawHTML: decrypted
             });
-          } catch (error) {
-            console.error('Failed to decrypt event:', event.id, error);
           }
+        } catch (error) {
+          console.error('Failed to decrypt/parse DM:', error);
         }
-        
-        console.log(`Decrypted ${submissions.length} submissions`);
-        
-        // Display submissions
-        if (submissions.length === 0) {
-          loadingState!.classList.add('hidden');
-          emptyState!.classList.remove('hidden');
-        } else {
-          displaySubmissions();
-          loadingState!.classList.add('hidden');
-          submissionsGrid!.classList.remove('hidden');
-        }
-        
-      } catch (error) {
-        console.error('Error loading submissions:', error);
-        alert('Failed to load submissions. Check console for details.');
-        loadingState!.classList.add('hidden');
-        emptyState!.classList.remove('hidden');
       }
-    }
-    
-    // Display submissions in grid
-    function displaySubmissions() {
-      const grid = document.getElementById('submissions-grid')!;
-      grid.innerHTML = '';
       
-      submissions.forEach((submission, index) => {
-        const card = document.createElement('div');
-        card.className = 'bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-lg transition cursor-pointer';
-        card.innerHTML = `
-          <div class="flex justify-between items-start mb-4">
-            <h3 class="text-xl font-bold text-gray-900">${submission.formType}</h3>
-            <span class="text-xs text-gray-500">${submission.timestamp.toLocaleDateString()}</span>
+      console.log(`Parsed ${submissions.length} submissions`);
+      
+      currentSubmissions = submissions;
+      
+      // Display submissions
+      if (submissions.length === 0) {
+        loadingState?.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+      } else {
+        loadingState?.classList.add('hidden');
+        submissionsGrid?.classList.remove('hidden');
+        renderSubmissions(submissions);
+      }
+      
+    } catch (error) {
+      console.error('Error loading submissions:', error);
+      loadingState?.classList.add('hidden');
+      alert('Failed to load submissions. Check console for details.');
+    }
+  }
+  
+  // Render submissions as cards
+  function renderSubmissions(submissions: any[]) {
+    const grid = document.getElementById('submissions-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    submissions.forEach(submission => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition';
+      
+      // Determine category
+      let category = 'unknown';
+      let categoryColor = 'gray';
+      
+      if (submission.formType.toLowerCase().includes('bike train')) {
+        category = 'bike-train';
+        categoryColor = 'blue';
+      } else if (submission.formType.toLowerCase().includes('trail')) {
+        category = 'trail';
+        categoryColor = 'green';
+      } else if (submission.formType.toLowerCase().includes('pump')) {
+        category = 'pump-track';
+        categoryColor = 'purple';
+      }
+      
+      card.innerHTML = `
+        <div class="bg-${categoryColor}-600 text-white p-4">
+          <h3 class="font-bold text-lg">${submission.formType}</h3>
+          <p class="text-sm text-${categoryColor}-100 mt-1">
+            ${new Date(submission.timestamp * 1000).toLocaleString()}
+          </p>
+        </div>
+        <div class="p-4 space-y-2">
+          <div class="text-sm">
+            <span class="font-semibold">Contributor:</span>
+            <span class="text-gray-700">${submission.profile.name}</span>
           </div>
-          <div class="space-y-2 text-sm">
-            <p><strong>From:</strong> ${submission.contributorNpub || 'Anonymous'}</p>
-            ${submission.fields['Route Name'] ? `<p><strong>Name:</strong> ${submission.fields['Route Name']}</p>` : ''}
-            ${submission.fields['Trail Name'] ? `<p><strong>Name:</strong> ${submission.fields['Trail Name']}</p>` : ''}
-            ${submission.fields['Location Name'] ? `<p><strong>Name:</strong> ${submission.fields['Location Name']}</p>` : ''}
-            ${submission.geoJSON ? '<p class="text-green-600">✓ Includes map data</p>' : '<p class="text-gray-400">No map data</p>'}
-          </div>
-          <button class="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
-            Review
+          ${submission.formData['Trail Name'] ? `
+            <div class="text-sm">
+              <span class="font-semibold">Name:</span>
+              <span class="text-gray-700">${submission.formData['Trail Name']}</span>
+            </div>
+          ` : ''}
+          ${submission.geoJSON ? `
+            <div class="text-sm">
+              <span class="font-semibold">Map Data:</span>
+              <span class="text-green-600">✓ Included</span>
+            </div>
+          ` : ''}
+        </div>
+        <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
+          <button 
+            class="review-btn w-full bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 transition"
+            data-id="${submission.id}"
+          >
+            Review Submission
           </button>
-        `;
-        
-        card.addEventListener('click', () => showApprovalModal(submission));
-        grid.appendChild(card);
+        </div>
+      `;
+      
+      // Add click handler
+      const reviewBtn = card.querySelector('.review-btn');
+      reviewBtn?.addEventListener('click', () => {
+        openReviewModal(submission, category);
       });
+      
+      grid.appendChild(card);
+    });
+  }
+  
+  // Open review modal
+  function openReviewModal(submission: any, category: string) {
+    currentSubmission = { ...submission, category };
+    
+    const modal = document.getElementById('approval-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDetails = document.getElementById('modal-details');
+    
+    modal?.classList.remove('hidden');
+    
+    if (modalTitle) {
+      modalTitle.textContent = `Review: ${submission.formType}`;
     }
     
-    // Show approval modal
-    function showApprovalModal(submission) {
-      currentSubmission = submission;
-      const modal = document.getElementById('approval-modal')!;
-      const title = document.getElementById('modal-title')!;
-      const details = document.getElementById('modal-details')!;
-      const mapContainer = document.getElementById('modal-map')!;
-      
-      title.textContent = `Review: ${submission.formType}`;
-      
-      // Display form fields
-      details.innerHTML = Object.entries(submission.fields)
-        .map(([label, value]) => `
-          <div class="flex gap-2">
-            <span class="font-semibold text-gray-700 min-w-[150px]">${label}:</span>
+    // Populate details
+    if (modalDetails) {
+      modalDetails.innerHTML = Object.entries(submission.formData)
+        .map(([key, value]) => `
+          <div class="flex justify-between">
+            <span class="font-semibold text-gray-700">${key}:</span>
             <span class="text-gray-900">${value}</span>
           </div>
         `).join('');
-      
-      // Initialize map if has GeoJSON
-      if (submission.geoJSON) {
-        mapContainer.classList.remove('hidden');
-        
-        // Clear existing map
-        if (modalMap) {
-          modalMap.remove();
-        }
-        
-        // Create new map
-        setTimeout(() => {
-          modalMap = L.map('modal-map').setView([49.3257, -122.8565], 14);
-          
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 19
-          }).addTo(modalMap);
-          
-          // Add GeoJSON layer
-          const geoJSONLayer = L.geoJSON(submission.geoJSON, {
-            style: {
-              color: '#2563eb',
-              weight: 4,
-              opacity: 0.8
-            }
-          }).addTo(modalMap);
-          
-          // Fit bounds to GeoJSON
-          modalMap.fitBounds(geoJSONLayer.getBounds(), { padding: [50, 50] });
-        }, 100);
-      } else {
-        mapContainer.classList.add('hidden');
-      }
-      
-      modal.classList.remove('hidden');
     }
     
-    // Close modal
-    document.getElementById('close-modal-btn')?.addEventListener('click', () => {
-      document.getElementById('approval-modal')!.classList.add('hidden');
-      if (modalMap) {
-        modalMap.remove();
-        modalMap = null;
-      }
-    });
+    // Initialize map
+    setTimeout(() => {
+      initModalMap(submission.geoJSON);
+    }, 100);
+  }
+  
+  // Initialize modal map
+  function initModalMap(geoJSON: any) {
+    const mapEl = document.getElementById('modal-map');
+    if (!mapEl || !geoJSON) return;
     
-    // Approve submission
-    document.getElementById('approve-btn')?.addEventListener('click', async () => {
-      if (!currentSubmission || !adminKeypair) return;
-      
-      const adminNote = (document.getElementById('admin-note') as HTMLTextAreaElement).value.trim();
-      
-      try {
-        const approveBtn = document.getElementById('approve-btn') as HTMLButtonElement;
-        approveBtn.disabled = true;
-        approveBtn.textContent = 'Publishing...';
-        
-        // Determine category from form type
-        let category = 'other';
-        if (currentSubmission.formType.includes('Bike Train')) category = 'bike-train';
-        else if (currentSubmission.formType.includes('Trail')) category = 'trail';
-        else if (currentSubmission.formType.includes('Pump Track')) category = 'pump-track';
-        
-        // Generate unique route ID
-        const routeId = `${category}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Create content object
-        const content = {
-          geoJSON: currentSubmission.geoJSON,
-          description: currentSubmission.fields['Route Name'] || 
-                       currentSubmission.fields['Trail Name'] || 
-                       currentSubmission.fields['Location Name'] || 
-                       'Community Submission',
-          approvalNote: adminNote,
-          adminName: 'Admin',
-          formData: currentSubmission.fields,
-          originalSubmission: {
-            timestamp: currentSubmission.timestamp.getTime(),
-            contributor: currentSubmission.contributorNpub
-          }
-        };
-        
-        // Create kind:30078 event
-        const eventTemplate = {
-          kind: 30078,
-          created_at: Math.floor(Date.now() / 1000),
-          tags: [
-            ['d', routeId],
-            ['t', 'anmore-bike'],
-            ['t', category],
-            ['category', category],
-            ['name', content.description],
-            ['contributor', currentSubmission.contributorNpub || 'anonymous'],
-            ['approved_at', Math.floor(Date.now() / 1000).toString()],
-            ['status', 'active']
-          ],
-          content: JSON.stringify(content)
-        };
-        
-        // Sign event
-        const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
-        
-        // Publish to relays
-        const pool = new SimplePool();
-        const promises = NOSTR_RELAYS.map(relay => pool.publish([relay], signedEvent));
-        await Promise.all(promises);
-        pool.close(NOSTR_RELAYS);
-        
-        console.log('Published approval event:', signedEvent.id);
-        
-        // Send confirmation DM to contributor (optional)
-        // ... (implement if needed)
-        
-        alert(`✅ Approved and published: ${content.description}`);
-        
-        // Close modal and remove from list
-        document.getElementById('approval-modal')!.classList.add('hidden');
-        submissions = submissions.filter(s => s.id !== currentSubmission.id);
-        displaySubmissions();
-        
-        approveBtn.disabled = false;
-        approveBtn.textContent = '✓ Approve & Publish';
-        
-      } catch (error) {
-        console.error('Error approving submission:', error);
-        alert('Failed to approve submission. Check console for details.');
-        const approveBtn = document.getElementById('approve-btn') as HTMLButtonElement;
-        approveBtn.disabled = false;
-        approveBtn.textContent = '✓ Approve & Publish';
-      }
-    });
+    // Destroy existing map
+    if (modalMap) {
+      modalMap.remove();
+    }
     
-    // Reject submission
-    document.getElementById('reject-btn')?.addEventListener('click', async () => {
-      if (!currentSubmission) return;
-      
-      const reason = prompt('Reason for rejection (will be sent to contributor):');
-      if (!reason) return;
-      
-      try {
-        // Send rejection DM (implement if needed)
-        alert('Rejection sent (DM functionality not implemented yet)');
-        
-        // Remove from list
-        document.getElementById('approval-modal')!.classList.add('hidden');
-        submissions = submissions.filter(s => s.id !== currentSubmission.id);
-        displaySubmissions();
-      } catch (error) {
-        console.error('Error rejecting submission:', error);
-      }
-    });
+    // Create new map
+    modalMap = (window as any).L.map('modal-map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
     
-    // Refresh button
-    document.getElementById('refresh-btn')?.addEventListener('click', loadSubmissions);
-  </script>
+    (window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(modalMap);
+    
+    // Add GeoJSON
+    const geoLayer = (window as any).L.geoJSON(geoJSON, {
+      style: {
+        color: '#16a34a',
+        weight: 4,
+        opacity: 0.8
+      }
+    }).addTo(modalMap);
+    
+    // Fit bounds
+    if (geoJSON.features && geoJSON.features.length > 0) {
+      modalMap.fitBounds(geoLayer.getBounds());
+    }
+  }
+  
+  // Close modal
+  document.getElementById('close-modal-btn')?.addEventListener('click', () => {
+    document.getElementById('approval-modal')?.classList.add('hidden');
+    if (modalMap) {
+      modalMap.remove();
+      modalMap = null;
+    }
+  });
+  
+  // Approve button
+  document.getElementById('approve-btn')?.addEventListener('click', async () => {
+    if (!currentSubmission || !adminKeypair) return;
+    
+    const adminNote = (document.getElementById('admin-note') as HTMLTextAreaElement)?.value || '';
+    
+    try {
+      console.log('✅ Approving submission:', currentSubmission);
+      
+      // Create approval event (kind:30078)
+      const routeName = currentSubmission.formData['Trail Name'] || 
+                        currentSubmission.formData['Route Name'] ||
+                        currentSubmission.formData['Pump Track Name'] ||
+                        'Community Route';
+      
+      const content = {
+        geoJSON: currentSubmission.geoJSON,
+        description: currentSubmission.formData['Description'] || currentSubmission.formData['Additional Info'] || '',
+        approvalNote: adminNote,
+        adminName: 'Anmore.bike Admin',
+        originalSubmission: {
+          timestamp: currentSubmission.timestamp,
+          contributor: currentSubmission.pubkey
+        }
+      };
+      
+      const eventTemplate = {
+        kind: 30078,
+        content: JSON.stringify(content),
+        tags: [
+          ['d', `${currentSubmission.category}-${Date.now()}`],  // Unique identifier
+          ['t', 'anmore-bike'],
+          ['category', currentSubmission.category],
+          ['name', routeName],
+          ['contributor', nip19.npubEncode(currentSubmission.pubkey)],
+          ['approved_at', Math.floor(Date.now() / 1000).toString()],
+          ['status', 'active']
+        ],
+        created_at: Math.floor(Date.now() / 1000)
+      };
+      
+      const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
+      
+      // Publish to relays
+      const pool = new SimplePool();
+      const promises = RELAYS.map(relay => pool.publish([relay], signedEvent));
+      await Promise.allSettled(promises);
+      pool.close(RELAYS);
+      
+      console.log('✅ Approval published to relays');
+      
+      alert(`Approved: ${routeName}\n\nThe route is now visible to all users!`);
+      
+      // Close modal and refresh
+      document.getElementById('approval-modal')?.classList.add('hidden');
+      await loadPendingSubmissions();
+      
+    } catch (error) {
+      console.error('Approval error:', error);
+      alert('Failed to approve submission. Check console for details.');
+    }
+  });
+  
+  // Reject button
+  document.getElementById('reject-btn')?.addEventListener('click', async () => {
+    const reason = prompt('Rejection reason (will be sent to contributor):');
+    if (!reason || !currentSubmission || !adminKeypair) return;
+    
+    try {
+      // Send rejection DM
+      const message = `Your ${currentSubmission.formType} submission was not approved.\n\nReason: ${reason}\n\nPlease revise and resubmit if you'd like.`;
+      
+      const encryptedContent = await nip04.encrypt(
+        adminKeypair.secretKey,
+        currentSubmission.pubkey,
+        message
+      );
+      
+      const eventTemplate = {
+        kind: 4,
+        content: encryptedContent,
+        tags: [['p', currentSubmission.pubkey]],
+        created_at: Math.floor(Date.now() / 1000)
+      };
+      
+      const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
+      
+      const pool = new SimplePool();
+      await pool.publish(RELAYS, signedEvent);
+      pool.close(RELAYS);
+      
+      alert('Rejection sent to contributor');
+      
+      // Close modal and refresh
+      document.getElementById('approval-modal')?.classList.add('hidden');
+      await loadPendingSubmissions();
+      
+    } catch (error) {
+      console.error('Rejection error:', error);
+      alert('Failed to send rejection. Check console for details.');
+    }
+  });
+</script>
+
+<style>
+  /* Prevent Tailwind purging */
+  .bg-blue-600 { background-color: #2563eb; }
+  .bg-green-600 { background-color: #16a34a; }
+  .bg-purple-600 { background-color: #9333ea; }
+  .text-blue-100 { color: #dbeafe; }
+  .text-green-100 { color: #dcfce7; }
+  .text-purple-100 { color: #f3e8ff; }
+</style>
 </Layout>
