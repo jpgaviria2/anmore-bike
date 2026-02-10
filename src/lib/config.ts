@@ -25,3 +25,18 @@ export const NOSTR_RELAYS = [
 ];
 
 export const RECIPIENT_NPUB = 'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2';
+
+// Admin Configuration
+// Admin npub for approving routes (can have multiple admins)
+export const ADMIN_NPUB = 'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2'; // Using same key for testing
+
+// Admin Configuration
+// Admin npubs authorized to approve submissions
+export const ADMIN_NPUBS = [
+  'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2' // Primary admin
+];
+
+// Check if a given npub is an admin
+export function isAdmin(npub: string): boolean {
+  return ADMIN_NPUBS.includes(npub);
+}

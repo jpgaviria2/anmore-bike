@@ -1,0 +1,512 @@
+---
+/**
+ * Admin Dashboard
+ * 
+ * Features:
+ * - Login with admin nsec
+ * - View pending submissions (encrypted DMs)
+ * - Approve/reject submissions
+ * - Publish approved routes as kind:30078 events
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="Admin Dashboard - Anmore.bike">
+  <Navigation />
+  
+  <div class="container mx-auto px-4 py-8">
+    <!-- Admin Login Section -->
+    <div id="login-section" class="max-w-md mx-auto">
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">Admin Login</h1>
+        <div class="space-y-4">
+          <div>
+            <label for="admin-nsec" class="block text-sm font-semibold text-gray-700 mb-2">
+              Admin nsec (Private Key)
+            </label>
+            <input 
+              type="password" 
+              id="admin-nsec" 
+              placeholder="nsec1..."
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Your private key is stored only in your browser and never sent anywhere except to sign events.
+            </p>
+          </div>
+          <button 
+            id="login-btn"
+            class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"
+          >
+            Login as Admin
+          </button>
+          <p id="login-error" class="text-red-600 text-sm hidden"></p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Admin Panel (hidden until logged in) -->
+    <div id="admin-panel" class="hidden">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Pending Submissions</h1>
+          <p class="text-gray-600 mt-1">Review and approve community submissions</p>
+        </div>
+        <button 
+          id="logout-btn"
+          class="text-red-600 font-semibold hover:text-red-700 transition"
+        >
+          Logout
+        </button>
+      </div>
+      
+      <!-- Loading State -->
+      <div id="loading-state" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <p class="text-gray-600 mt-4">Loading submissions from relays...</p>
+      </div>
+      
+      <!-- Submissions Grid -->
+      <div id="submissions-grid" class="hidden grid md:grid-cols-2 gap-6">
+        <!-- Will be populated dynamically -->
+      </div>
+      
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center py-12 bg-gray-50 rounded-xl">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-600 text-lg font-semibold">No pending submissions</p>
+        <p class="text-gray-500 mt-1">Check back later or refresh to load new submissions</p>
+        <button id="refresh-btn" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Approval Modal -->
+  <div id="approval-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-4">
+          <h2 class="text-2xl font-bold text-gray-900" id="modal-title">Review Submission</h2>
+          <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Map Preview -->
+        <div id="modal-map" class="h-[400px] mb-6 rounded-lg border-2 border-gray-200"></div>
+        
+        <!-- Submission Details -->
+        <div id="modal-details" class="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
+          <!-- Populated dynamically -->
+        </div>
+        
+        <!-- Admin Actions -->
+        <div class="space-y-4">
+          <div>
+            <label for="admin-note" class="block text-sm font-semibold text-gray-700 mb-2">
+              Admin Note (optional)
+            </label>
+            <textarea 
+              id="admin-note"
+              rows="3"
+              class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+              placeholder="Add a note for the contributor (e.g., 'Great route! Approved for 2026 build season')"
+            ></textarea>
+          </div>
+          
+          <div class="flex gap-4">
+            <button 
+              id="approve-btn"
+              class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"
+            >
+              ✓ Approve & Publish
+            </button>
+            <button 
+              id="reject-btn"
+              class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition shadow-lg"
+            >
+              ✗ Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load Leaflet -->
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <script type="module">
+    import { decodeNsec, sendEncryptedDM, getRecipientPubkey } from '../lib/nostr.ts';
+    import { isAdmin } from '../lib/config.ts';
+    import { SimplePool } from 'nostr-tools/pool';
+    import { NOSTR_RELAYS } from '../lib/config.ts';
+    import * as nip04 from 'nostr-tools/nip04';
+    import * as nip19 from 'nostr-tools/nip19';
+    import { finalizeEvent } from 'nostr-tools/pure';
+    import { getPublicKey } from 'nostr-tools/pure';
+    
+    let adminKeypair = null;
+    let currentSubmission = null;
+    let modalMap = null;
+    let submissions = [];
+    
+    // Login handler
+    document.getElementById('login-btn')?.addEventListener('click', async () => {
+      const nsecInput = document.getElementById('admin-nsec') as HTMLInputElement;
+      const nsec = nsecInput.value.trim();
+      const errorEl = document.getElementById('login-error');
+      
+      if (!nsec) {
+        errorEl!.textContent = 'Please enter your admin nsec';
+        errorEl!.classList.remove('hidden');
+        return;
+      }
+      
+      // Decode and verify
+      const keypair = decodeNsec(nsec);
+      if (!keypair) {
+        errorEl!.textContent = 'Invalid nsec format';
+        errorEl!.classList.remove('hidden');
+        return;
+      }
+      
+      // Check if admin
+      if (!isAdmin(keypair.npub)) {
+        errorEl!.textContent = 'You are not authorized as an admin';
+        errorEl!.classList.remove('hidden');
+        return;
+      }
+      
+      // Store keypair
+      adminKeypair = keypair;
+      
+      // Show admin panel
+      document.getElementById('login-section')!.classList.add('hidden');
+      document.getElementById('admin-panel')!.classList.remove('hidden');
+      
+      // Load submissions
+      await loadSubmissions();
+    });
+    
+    // Logout handler
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+      adminKeypair = null;
+      document.getElementById('admin-panel')!.classList.add('hidden');
+      document.getElementById('login-section')!.classList.remove('hidden');
+      (document.getElementById('admin-nsec') as HTMLInputElement).value = '';
+    });
+    
+    // Load submissions from relays
+    async function loadSubmissions() {
+      const loadingState = document.getElementById('loading-state');
+      const submissionsGrid = document.getElementById('submissions-grid');
+      const emptyState = document.getElementById('empty-state');
+      
+      loadingState!.classList.remove('hidden');
+      submissionsGrid!.classList.add('hidden');
+      emptyState!.classList.add('hidden');
+      
+      try {
+        const pool = new SimplePool();
+        const recipientPubkey = getRecipientPubkey();
+        
+        // Query for DMs sent to admin
+        const filter = {
+          kinds: [4],
+          '#p': [recipientPubkey],
+          limit: 50
+        };
+        
+        console.log('Querying for submissions...', filter);
+        const events = await pool.querySync(NOSTR_RELAYS, filter);
+        pool.close(NOSTR_RELAYS);
+        
+        console.log(`Found ${events.length} DM events`);
+        
+        // Decrypt and parse submissions
+        submissions = [];
+        for (const event of events) {
+          try {
+            const decrypted = await nip04.decrypt(
+              adminKeypair!.secretKey,
+              event.pubkey,
+              event.content
+            );
+            
+            // Parse HTML to extract form data
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(decrypted, 'text/html');
+            
+            const formType = doc.querySelector('h1')?.textContent || 'Unknown Submission';
+            const contributorNpub = doc.querySelector('.field .value')?.textContent?.trim();
+            
+            // Extract GeoJSON if present
+            let geoJSON = null;
+            const geoDataEl = doc.querySelector('.geo-data pre');
+            if (geoDataEl) {
+              try {
+                geoJSON = JSON.parse(geoDataEl.textContent || '');
+              } catch (e) {
+                console.error('Failed to parse GeoJSON:', e);
+              }
+            }
+            
+            // Extract form fields
+            const fields = {};
+            doc.querySelectorAll('.field').forEach(field => {
+              const label = field.querySelector('.label')?.textContent?.trim();
+              const value = field.querySelector('.value')?.textContent?.trim();
+              if (label && value) {
+                fields[label] = value;
+              }
+            });
+            
+            submissions.push({
+              id: event.id,
+              formType,
+              contributorNpub,
+              geoJSON,
+              fields,
+              rawHtml: decrypted,
+              timestamp: new Date(event.created_at * 1000)
+            });
+          } catch (error) {
+            console.error('Failed to decrypt event:', event.id, error);
+          }
+        }
+        
+        console.log(`Decrypted ${submissions.length} submissions`);
+        
+        // Display submissions
+        if (submissions.length === 0) {
+          loadingState!.classList.add('hidden');
+          emptyState!.classList.remove('hidden');
+        } else {
+          displaySubmissions();
+          loadingState!.classList.add('hidden');
+          submissionsGrid!.classList.remove('hidden');
+        }
+        
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+        alert('Failed to load submissions. Check console for details.');
+        loadingState!.classList.add('hidden');
+        emptyState!.classList.remove('hidden');
+      }
+    }
+    
+    // Display submissions in grid
+    function displaySubmissions() {
+      const grid = document.getElementById('submissions-grid')!;
+      grid.innerHTML = '';
+      
+      submissions.forEach((submission, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-lg transition cursor-pointer';
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-gray-900">${submission.formType}</h3>
+            <span class="text-xs text-gray-500">${submission.timestamp.toLocaleDateString()}</span>
+          </div>
+          <div class="space-y-2 text-sm">
+            <p><strong>From:</strong> ${submission.contributorNpub || 'Anonymous'}</p>
+            ${submission.fields['Route Name'] ? `<p><strong>Name:</strong> ${submission.fields['Route Name']}</p>` : ''}
+            ${submission.fields['Trail Name'] ? `<p><strong>Name:</strong> ${submission.fields['Trail Name']}</p>` : ''}
+            ${submission.fields['Location Name'] ? `<p><strong>Name:</strong> ${submission.fields['Location Name']}</p>` : ''}
+            ${submission.geoJSON ? '<p class="text-green-600">✓ Includes map data</p>' : '<p class="text-gray-400">No map data</p>'}
+          </div>
+          <button class="mt-4 w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
+            Review
+          </button>
+        `;
+        
+        card.addEventListener('click', () => showApprovalModal(submission));
+        grid.appendChild(card);
+      });
+    }
+    
+    // Show approval modal
+    function showApprovalModal(submission) {
+      currentSubmission = submission;
+      const modal = document.getElementById('approval-modal')!;
+      const title = document.getElementById('modal-title')!;
+      const details = document.getElementById('modal-details')!;
+      const mapContainer = document.getElementById('modal-map')!;
+      
+      title.textContent = `Review: ${submission.formType}`;
+      
+      // Display form fields
+      details.innerHTML = Object.entries(submission.fields)
+        .map(([label, value]) => `
+          <div class="flex gap-2">
+            <span class="font-semibold text-gray-700 min-w-[150px]">${label}:</span>
+            <span class="text-gray-900">${value}</span>
+          </div>
+        `).join('');
+      
+      // Initialize map if has GeoJSON
+      if (submission.geoJSON) {
+        mapContainer.classList.remove('hidden');
+        
+        // Clear existing map
+        if (modalMap) {
+          modalMap.remove();
+        }
+        
+        // Create new map
+        setTimeout(() => {
+          modalMap = L.map('modal-map').setView([49.3257, -122.8565], 14);
+          
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+          }).addTo(modalMap);
+          
+          // Add GeoJSON layer
+          const geoJSONLayer = L.geoJSON(submission.geoJSON, {
+            style: {
+              color: '#2563eb',
+              weight: 4,
+              opacity: 0.8
+            }
+          }).addTo(modalMap);
+          
+          // Fit bounds to GeoJSON
+          modalMap.fitBounds(geoJSONLayer.getBounds(), { padding: [50, 50] });
+        }, 100);
+      } else {
+        mapContainer.classList.add('hidden');
+      }
+      
+      modal.classList.remove('hidden');
+    }
+    
+    // Close modal
+    document.getElementById('close-modal-btn')?.addEventListener('click', () => {
+      document.getElementById('approval-modal')!.classList.add('hidden');
+      if (modalMap) {
+        modalMap.remove();
+        modalMap = null;
+      }
+    });
+    
+    // Approve submission
+    document.getElementById('approve-btn')?.addEventListener('click', async () => {
+      if (!currentSubmission || !adminKeypair) return;
+      
+      const adminNote = (document.getElementById('admin-note') as HTMLTextAreaElement).value.trim();
+      
+      try {
+        const approveBtn = document.getElementById('approve-btn') as HTMLButtonElement;
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Publishing...';
+        
+        // Determine category from form type
+        let category = 'other';
+        if (currentSubmission.formType.includes('Bike Train')) category = 'bike-train';
+        else if (currentSubmission.formType.includes('Trail')) category = 'trail';
+        else if (currentSubmission.formType.includes('Pump Track')) category = 'pump-track';
+        
+        // Generate unique route ID
+        const routeId = `${category}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Create content object
+        const content = {
+          geoJSON: currentSubmission.geoJSON,
+          description: currentSubmission.fields['Route Name'] || 
+                       currentSubmission.fields['Trail Name'] || 
+                       currentSubmission.fields['Location Name'] || 
+                       'Community Submission',
+          approvalNote: adminNote,
+          adminName: 'Admin',
+          formData: currentSubmission.fields,
+          originalSubmission: {
+            timestamp: currentSubmission.timestamp.getTime(),
+            contributor: currentSubmission.contributorNpub
+          }
+        };
+        
+        // Create kind:30078 event
+        const eventTemplate = {
+          kind: 30078,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [
+            ['d', routeId],
+            ['t', 'anmore-bike'],
+            ['t', category],
+            ['category', category],
+            ['name', content.description],
+            ['contributor', currentSubmission.contributorNpub || 'anonymous'],
+            ['approved_at', Math.floor(Date.now() / 1000).toString()],
+            ['status', 'active']
+          ],
+          content: JSON.stringify(content)
+        };
+        
+        // Sign event
+        const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
+        
+        // Publish to relays
+        const pool = new SimplePool();
+        const promises = NOSTR_RELAYS.map(relay => pool.publish([relay], signedEvent));
+        await Promise.all(promises);
+        pool.close(NOSTR_RELAYS);
+        
+        console.log('Published approval event:', signedEvent.id);
+        
+        // Send confirmation DM to contributor (optional)
+        // ... (implement if needed)
+        
+        alert(`✅ Approved and published: ${content.description}`);
+        
+        // Close modal and remove from list
+        document.getElementById('approval-modal')!.classList.add('hidden');
+        submissions = submissions.filter(s => s.id !== currentSubmission.id);
+        displaySubmissions();
+        
+        approveBtn.disabled = false;
+        approveBtn.textContent = '✓ Approve & Publish';
+        
+      } catch (error) {
+        console.error('Error approving submission:', error);
+        alert('Failed to approve submission. Check console for details.');
+        const approveBtn = document.getElementById('approve-btn') as HTMLButtonElement;
+        approveBtn.disabled = false;
+        approveBtn.textContent = '✓ Approve & Publish';
+      }
+    });
+    
+    // Reject submission
+    document.getElementById('reject-btn')?.addEventListener('click', async () => {
+      if (!currentSubmission) return;
+      
+      const reason = prompt('Reason for rejection (will be sent to contributor):');
+      if (!reason) return;
+      
+      try {
+        // Send rejection DM (implement if needed)
+        alert('Rejection sent (DM functionality not implemented yet)');
+        
+        // Remove from list
+        document.getElementById('approval-modal')!.classList.add('hidden');
+        submissions = submissions.filter(s => s.id !== currentSubmission.id);
+        displaySubmissions();
+      } catch (error) {
+        console.error('Error rejecting submission:', error);
+      }
+    });
+    
+    // Refresh button
+    document.getElementById('refresh-btn')?.addEventListener('click', loadSubmissions);
+  </script>
+</Layout>

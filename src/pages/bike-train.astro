@@ -602,7 +602,110 @@ import ProfileModal from '../components/ProfileModal.astro';
       map.on('draw:created', function(e) {
         drawnItems.addLayer(e.layer);
       });
+      
+      // Load and display approved routes
+      loadApprovedBikeTrainRoutes(map);
     });
+    
+    // Function to load approved routes
+    async function loadApprovedBikeTrainRoutes(map) {
+      try {
+        console.log('Loading approved bike train routes...');
+        
+        // Dynamic import of routes library
+        const { loadApprovedRoutes, subscribeToApprovals } = await import('../lib/routes.ts');
+        
+        // Create approved routes layer
+        const approvedLayer = L.layerGroup();
+        window.bikeTrainApprovedLayer = approvedLayer;
+        
+        // Load existing approved routes
+        const routes = await loadApprovedRoutes('bike-train');
+        console.log(`Loaded ${routes.length} approved routes`);
+        
+        // Add each route to the map
+        routes.forEach(route => {
+          if (route.geoJSON && route.geoJSON.features) {
+            L.geoJSON(route.geoJSON, {
+              style: {
+                color: '#059669', // green-600
+                weight: 4,
+                opacity: 0.8,
+                dashArray: null // solid line for approved routes
+              },
+              onEachFeature: (feature, layer) => {
+                // Create popup with route details
+                const popupContent = `
+                  <div class="route-popup" style="min-width: 200px;">
+                    <h3 style="font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">${route.name}</h3>
+                    <p style="margin: 4px 0;"><strong>Status:</strong> ✅ Approved</p>
+                    ${route.description ? `<p style="margin: 4px 0;">${route.description}</p>` : ''}
+                    ${route.approvalNote ? `<p style="margin: 4px 0; font-style: italic; color: #059669;">"${route.approvalNote}"</p>` : ''}
+                    <p style="margin: 4px 0; font-size: 0.9em; color: #666;">
+                      Approved: ${route.approvedAt.toLocaleDateString()}
+                    </p>
+                    ${route.contributor ? `<p style="margin: 4px 0; font-size: 0.85em; color: #888;">Proposed by: ${route.contributor}</p>` : ''}
+                  </div>
+                `;
+                layer.bindPopup(popupContent);
+              }
+            }).addTo(approvedLayer);
+          }
+        });
+        
+        // Add layer control
+        const overlays = {
+          '✅ Approved Routes': approvedLayer,
+          '✏️ Your Drawing': window.bikeTrainDrawnItems
+        };
+        
+        L.control.layers(null, overlays, { 
+          collapsed: false,
+          position: 'topright'
+        }).addTo(map);
+        
+        // Add approved layer to map by default
+        approvedLayer.addTo(map);
+        
+        // Subscribe to real-time updates
+        const unsubscribe = subscribeToApprovals('bike-train', (newRoute) => {
+          console.log('New route approved in real-time:', newRoute.name);
+          
+          if (newRoute.geoJSON && newRoute.geoJSON.features) {
+            L.geoJSON(newRoute.geoJSON, {
+              style: {
+                color: '#059669',
+                weight: 4,
+                opacity: 0.8
+              },
+              onEachFeature: (feature, layer) => {
+                const popupContent = `
+                  <div class="route-popup" style="min-width: 200px;">
+                    <h3 style="font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">${newRoute.name}</h3>
+                    <p style="margin: 4px 0;"><strong>Status:</strong> ✅ Just Approved!</p>
+                    ${newRoute.description ? `<p style="margin: 4px 0;">${newRoute.description}</p>` : ''}
+                    ${newRoute.approvalNote ? `<p style="margin: 4px 0; font-style: italic; color: #059669;">"${newRoute.approvalNote}"</p>` : ''}
+                    <p style="margin: 4px 0; font-size: 0.9em; color: #666;">
+                      Approved: ${newRoute.approvedAt.toLocaleDateString()}
+                    </p>
+                  </div>
+                `;
+                layer.bindPopup(popupContent);
+              }
+            }).addTo(approvedLayer);
+            
+            // Show notification (you can add a toast here)
+            console.log(`🎉 New bike train route approved: ${newRoute.name}`);
+          }
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', unsubscribe);
+        
+      } catch (error) {
+        console.error('Error loading approved routes:', error);
+      }
+    }
   </script>
   
   <script type="module">
