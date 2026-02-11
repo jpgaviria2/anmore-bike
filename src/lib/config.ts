@@ -33,7 +33,7 @@ export const ADMIN_NPUB = 'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3
 // Admin Configuration
 // Admin npubs authorized to approve submissions
 export const ADMIN_NPUBS = [
-  'npub19djteyezrkn9ppg6gjfsxl59pgxrwh76uju60lxtcvr5svj3cmlsf54ca2' // Primary admin
+  'npub16nkjghvclzr8hwnsn7pqaqlktzz8jyrk6xy7j2lqck2l0rd0rnxskc2n2t' // JP - Anmore Bike Admin
 ];
 
 // Check if a given npub is an admin
