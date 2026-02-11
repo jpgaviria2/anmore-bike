@@ -542,6 +542,7 @@ import ProfileModal from '../components/ProfileModal.astro';
   <!-- Load Leaflet and scripts -->
   <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script is:inline src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script is:inline src="/map-routes.js"></script>
   
   <script is:inline>
     // Global variables
@@ -568,43 +569,24 @@ import ProfileModal from '../components/ProfileModal.astro';
         maxZoom: 19
       }).addTo(map);
       
-      // Add drawing tools (primarily polyline for routes)
-      const drawnItems = new L.FeatureGroup();
-      map.addLayer(drawnItems);
-      window.bikeTrainDrawnItems = drawnItems;
+      // Initialize Anmore route system (loads approved routes, adds drawing tools, WhatsApp submit)
+      if (typeof window.initAnmoreRoutes === 'function') {
+        window.initAnmoreRoutes(map, {
+          enableDrawing: true,
+          enableSubmission: true
+        });
+      } else {
+        console.error('❌ map-routes.js not loaded');
+      }
       
-      const drawControl = new L.Control.Draw({
-        edit: {
-          featureGroup: drawnItems
-        },
-        draw: {
-          polygon: false,
-          circle: false,
-          rectangle: false,
-          circlemarker: false,
-          polyline: {
-            shapeOptions: {
-              color: '#16a34a',
-              weight: 4
-            }
-          },
-          marker: {
-            icon: L.icon({
-              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41]
-            })
-          }
-        }
-      });
-      map.addControl(drawControl);
+      // Keep old drawing layer reference for backward compatibility
+      setTimeout(() => {
+        window.bikeTrainDrawnItems = window.anmoreRoutes.drawingLayer;
+      }, 100);
       
-      map.on('draw:created', function(e) {
-        drawnItems.addLayer(e.layer);
-      });
-      
+      // Legacy code below (can be removed later)
       // Load and display approved routes
-      loadApprovedBikeTrainRoutes(map);
+      // loadApprovedBikeTrainRoutes(map);
     });
     
     // Function to load approved routes

@@ -319,6 +319,7 @@ import ProfileModal from '../components/ProfileModal.astro';
   <!-- Load Leaflet and scripts -->
   <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script is:inline src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script is:inline src="/map-routes.js"></script>
   
   <script is:inline>
     // Global variables for map instance and drawn items
@@ -347,40 +348,18 @@ import ProfileModal from '../components/ProfileModal.astro';
         maxZoom: 19
       }).addTo(map);
       
-      // Add drawing tools
-      const drawnItems = new L.FeatureGroup();
-      map.addLayer(drawnItems);
-      window.trailDrawnItems = drawnItems;
+      // Initialize Anmore route system (loads approved routes, adds drawing tools, WhatsApp submit)
+      if (typeof window.initAnmoreRoutes === 'function') {
+        window.initAnmoreRoutes(map, {
+          enableDrawing: true,
+          enableSubmission: true
+        });
+      }
       
-      const drawControl = new L.Control.Draw({
-        edit: {
-          featureGroup: drawnItems
-        },
-        draw: {
-          polyline: {
-            shapeOptions: {
-              color: '#16a34a',
-              weight: 4
-            }
-          },
-          polygon: false,
-          circle: false,
-          rectangle: false,
-          circlemarker: false,
-          marker: {
-            icon: L.icon({
-              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41]
-            })
-          }
-        }
-      });
-      map.addControl(drawControl);
-      
-      map.on('draw:created', function(e) {
-        drawnItems.addLayer(e.layer);
-      });
+      // Keep old drawing layer reference for backward compatibility
+      setTimeout(() => {
+        window.trailDrawnItems = window.anmoreRoutes.drawingLayer;
+      }, 100);
     });
   </script>
   
