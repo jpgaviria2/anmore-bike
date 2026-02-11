@@ -139,8 +139,8 @@
             <button id="btn-copy" onclick="copyToClipboard()">
                 📋 Copy GeoJSON
             </button>
-            <button class="btn-send" id="btn-send" onclick="sendDM()">
-                📨 Send via Nostr DM
+            <button style="background: #28a745;" onclick="submitToGitHub()">
+                ✨ Submit via GitHub Issue
             </button>
             <button class="btn-clear" onclick="clearMap()">
                 🗑️ Clear Drawing
@@ -148,27 +148,43 @@
         </div>
         
         <div class="info-box">
-            <h3>📍 How Routes Get Published on Anmore.bike:</h3>
+            <h3>📍 How to Submit a Route:</h3>
             <ol>
-                <li><strong>Draw your route</strong> on the map above using the polyline tool</li>
-                <li><strong>Click "Download GeoJSON File"</strong> - saves route.geojson to your computer</li>
-                <li><strong>Send the file to admin</strong> (JP) via:
+                <li><strong>Draw your route</strong> on the map above using the polyline tool (left side)</li>
+                <li><strong>Click "✨ Submit via GitHub Issue"</strong>
                     <ul style="margin-top: 5px;">
-                        <li>WhatsApp / Email attachment</li>
-                        <li>Or click "📨 Send via Nostr DM" button above</li>
+                        <li>You'll be prompted for route name and details</li>
+                        <li>Opens GitHub with pre-filled submission form</li>
+                        <li>Click "Submit new issue" (requires GitHub account)</li>
                     </ul>
                 </li>
-                <li><strong>Admin adds route to website:</strong>
+                <li><strong>Admin reviews your submission</strong>
                     <ul style="margin-top: 5px;">
-                        <li>Admin opens <code>public/routes.geojson</code> file in the GitHub repo</li>
-                        <li>Adds your route to the "features" array</li>
-                        <li>Commits and pushes to GitHub</li>
-                        <li>Route appears as <strong style="color: #059669;">green line</strong> on this map for everyone!</li>
+                        <li>JP reviews the route on the map</li>
+                        <li>Checks safety and appropriateness</li>
+                        <li>Approves or requests changes</li>
+                    </ul>
+                </li>
+                <li><strong>Route goes live!</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>Approved routes added to routes.json</li>
+                        <li>Appears as <strong style="color: #059669;">green line</strong> on map for everyone</li>
+                        <li>You get notified when it's live!</li>
                     </ul>
                 </li>
             </ol>
+            
+            <div style="margin-top: 15px; padding: 15px; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
+                <strong>Don't have GitHub?</strong> No problem!
+                <ul style="margin-top: 5px;">
+                    <li>Click "📥 Download GeoJSON File" instead</li>
+                    <li>Send the file to JP via WhatsApp or email</li>
+                    <li>JP will create the issue for you</li>
+                </ul>
+            </div>
+            
             <p style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
-                <strong>Note:</strong> Routes are stored in the website code (routes.geojson file), not in OpenStreetMap. 
+                <strong>Note:</strong> Routes are stored in the website code (routes.json file). 
                 They appear as a custom overlay layer ONLY on anmore.bike, not on the public OSM map.
                 Base map = OSM tiles. Green routes = Your approved routes!
             </p>
@@ -215,7 +231,7 @@
         const approvedLayer = new L.FeatureGroup();
         map.addLayer(approvedLayer);
         
-        fetch('routes.geojson')
+        fetch('routes.json')
             .then(response => response.json())
             .then(data => {
                 if (data.features && data.features.length > 0) {
@@ -334,6 +350,64 @@
             }).catch(err => {
                 showStatus('Failed to copy: ' + err.message, true);
             });
+        };
+        
+        // Submit to GitHub Issue
+        window.submitToGitHub = function() {
+            const geoJSON = getGeoJSON();
+            if (!geoJSON) {
+                showStatus('Draw a route first!', true);
+                return;
+            }
+            
+            // Create pre-filled GitHub issue URL
+            const routeName = prompt('Route name:', 'New Bike Route');
+            if (!routeName) return;
+            
+            const description = prompt('Brief description (optional):', '');
+            const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+            
+            const issueBody = `## Route Information
+
+**Route Name:** ${routeName}
+
+**Route Type:** [ ] Bike Train to School
+
+**Description:**
+${description || 'Community-submitted bike route'}
+
+**Safety Notes:**
+<!-- Add any safety concerns here -->
+
+---
+
+## Route Data
+
+**GeoJSON:**
+\`\`\`json
+${JSON.stringify(geoJSON, null, 2)}
+\`\`\`
+
+---
+
+## Additional Information
+
+**Submitted by:** Anonymous
+
+**Difficulty:** ${difficulty}
+
+**Submitted via:** anmore.bike drawing tool
+`;
+            
+            const issueTitle = encodeURIComponent(`[ROUTE] ${routeName}`);
+            const issueBodyEncoded = encodeURIComponent(issueBody);
+            
+            const githubURL = `https://github.com/jpgaviria2/anmore-bike/issues/new?title=${issueTitle}&body=${issueBodyEncoded}&labels=route-submission,pending-review`;
+            
+            // Open GitHub in new tab
+            window.open(githubURL, '_blank');
+            
+            showStatus('✓ Opening GitHub to create issue. Click "Submit new issue" when ready!', false);
         };
         
         // Send via Nostr DM

@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "name": "Anmore Bike Routes",
+    "description": "Community-submitted and approved bike routes in Anmore, BC",
+    "updated": "2026-02-10",
+    "source": "https://github.com/jpgaviria2/anmore-bike"
+  },
+  "features": []
+}
