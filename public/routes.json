@@ -6,5 +6,60 @@
     "updated": "2026-02-10",
     "source": "https://github.com/jpgaviria2/anmore-bike"
   },
-  "features": []
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Route - Segment 1",
+        "description": "First test route submission",
+        "approved_date": "2026-02-10",
+        "category": "test",
+        "difficulty": "Easy",
+        "submitted_by": "JP"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-122.855759, 49.322657],
+          [-122.855844, 49.313983]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Route - Segment 2",
+        "description": "First test route submission",
+        "approved_date": "2026-02-10",
+        "category": "test",
+        "difficulty": "Easy",
+        "submitted_by": "JP"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-122.855644, 49.313946],
+          [-122.856445, 49.311987]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Route - Segment 3",
+        "description": "First test route submission",
+        "approved_date": "2026-02-10",
+        "category": "test",
+        "difficulty": "Easy",
+        "submitted_by": "JP"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-122.856588, 49.311856],
+          [-122.860537, 49.312024]
+        ]
+      }
+    }
+  ]
 }
