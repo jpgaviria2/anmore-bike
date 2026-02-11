@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# private credentials (never commit)
+ADMIN_CREDENTIALS.md
+
 # macOS-specific files
 .DS_Store
 
