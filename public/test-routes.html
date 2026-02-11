@@ -299,7 +299,7 @@
             showStatus('Publishing route...');
             
             try {
-                // Create kind:30078 event
+                // Create kind:1 event (text note) - more relay-compatible than kind:30078
                 const routeId = `bike-train-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 
                 const content = {
@@ -307,22 +307,19 @@
                     description: routeName,
                     approvalNote: adminNote || 'Auto-approved via test page',
                     adminName: 'Admin',
-                    originalSubmission: {
-                        timestamp: Date.now()
-                    }
+                    routeId: routeId,
+                    timestamp: Date.now()
                 };
                 
                 const eventTemplate = {
-                    kind: 30078,
+                    kind: 1,  // Changed from 30078 to 1 for better relay support
                     created_at: Math.floor(Date.now() / 1000),
                     tags: [
-                        ['d', routeId],
                         ['t', 'anmore-bike'],
                         ['t', 'bike-train'],
-                        ['category', 'bike-train'],
-                        ['name', routeName],
-                        ['approved_at', Math.floor(Date.now() / 1000).toString()],
-                        ['status', 'active']
+                        ['route', routeName],
+                        ['route-id', routeId],
+                        ['category', 'bike-train']
                     ],
                     content: JSON.stringify(content)
                 };
@@ -380,11 +377,11 @@
                 
                 log(`Admin pubkey: ${adminPk.substring(0, 16)}...`);
                 
-                // Query for ALL kind:30078 events, filter client-side
-                // (relay tag queries not working reliably)
+                // Query for kind:1 events (text notes with anmore-bike tag)
                 const filter = {
-                    kinds: [30078],
-                    authors: [adminPk]
+                    kinds: [1],
+                    authors: [adminPk],
+                    '#t': ['anmore-bike']
                 };
                 
                 log(`Query filter: ${JSON.stringify(filter)}`);
@@ -402,19 +399,13 @@
                     }
                 }
                 
-                // Filter client-side for anmore-bike routes
+                // kind:1 events should already be filtered by relay query
+                // but double-check client-side too
                 const events = allEvents.filter(event => {
                     const tags = event.tags || [];
-                    
-                    // Debug: check each event's tags
-                    const tTags = tags.filter(tag => tag[0] === 't');
-                    if (tTags.length > 0) {
-                        log(`Event ${event.id.substring(0, 8)} has 't' tags: ${JSON.stringify(tTags)}`);
-                    }
-                    
                     const hasTag = tags.some(tag => tag[0] === 't' && tag[1] === 'anmore-bike');
                     if (hasTag) {
-                        log(`✓ Found anmore-bike event: ${event.id.substring(0, 16)}...`);
+                        log(`✓ Found anmore-bike route: ${event.id.substring(0, 16)}...`);
                     }
                     return hasTag;
                 });
@@ -484,11 +475,12 @@
                 const pool = new SimplePool();
                 const adminPk = nip19.decode(ADMIN_NPUB).data;
                 
-                // Query 1: ALL events
-                log(`Query 1: ALL kind:30078 events from admin...`);
+                // Query 1: ALL kind:1 events with anmore-bike tag
+                log(`Query 1: kind:1 events with #t=anmore-bike from admin...`);
                 const filter1 = {
-                    kinds: [30078],
-                    authors: [adminPk]
+                    kinds: [1],
+                    authors: [adminPk],
+                    '#t': ['anmore-bike']
                 };
                 log(`Filter: ${JSON.stringify(filter1)}`);
                 const allEvents = await pool.querySync(RELAYS, filter1, { timeout: 15000 });
@@ -496,10 +488,11 @@
                 
                 // Query 2: Recent events only (last 24 hours)
                 const yesterday = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
-                log(`Query 2: Recent events (since ${new Date(yesterday * 1000).toLocaleString()})...`);
+                log(`Query 2: Recent anmore-bike events (since ${new Date(yesterday * 1000).toLocaleString()})...`);
                 const filter2 = {
-                    kinds: [30078],
+                    kinds: [1],
                     authors: [adminPk],
+                    '#t': ['anmore-bike'],
                     since: yesterday
                 };
                 log(`Filter: ${JSON.stringify(filter2)}`);
@@ -511,7 +504,7 @@
                 // Show recent events in detail
                 const events = recentEvents.length > 0 ? recentEvents : allEvents;
                 
-                log(`DEBUG: Found ${events.length} total kind:30078 events`);
+                log(`DEBUG: Found ${events.length} total anmore-bike route events`);
                 
                 if (events.length === 0) {
                     log('No events found! Possible issues:', true);
