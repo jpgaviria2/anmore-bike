@@ -353,21 +353,27 @@
         };
         
         // Submit to GitHub Issue
-        window.submitToGitHub = function() {
+        window.submitToGitHub = async function() {
             const geoJSON = getGeoJSON();
             if (!geoJSON) {
                 showStatus('Draw a route first!', true);
                 return;
             }
             
-            // Create pre-filled GitHub issue URL
+            // Get route details
             const routeName = prompt('Route name:', 'New Bike Route');
             if (!routeName) return;
             
             const description = prompt('Brief description (optional):', '');
             const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
             
-            const issueBody = `## Route Information
+            // Copy GeoJSON to clipboard
+            const geoJSONString = JSON.stringify(geoJSON, null, 2);
+            try {
+                await navigator.clipboard.writeText(geoJSONString);
+                
+                // Create issue URL with instructions to paste
+                const issueBody = `## Route Information
 
 **Route Name:** ${routeName}
 
@@ -383,9 +389,11 @@ ${description || 'Community-submitted bike route'}
 
 ## Route Data
 
-**GeoJSON:**
+**GeoJSON:** 
+⚠️ **PASTE YOUR GEOJSON BELOW** (it's been copied to your clipboard!)
+
 \`\`\`json
-${JSON.stringify(geoJSON, null, 2)}
+Paste here (Ctrl+V / Cmd+V)
 \`\`\`
 
 ---
@@ -396,18 +404,35 @@ ${JSON.stringify(geoJSON, null, 2)}
 
 **Difficulty:** ${difficulty}
 
-**Submitted via:** anmore.bike drawing tool
-`;
-            
-            const issueTitle = encodeURIComponent(`[ROUTE] ${routeName}`);
-            const issueBodyEncoded = encodeURIComponent(issueBody);
-            
-            const githubURL = `https://github.com/jpgaviria2/anmore-bike/issues/new?title=${issueTitle}&body=${issueBodyEncoded}&labels=route-submission,pending-review`;
-            
-            // Open GitHub in new tab
-            window.open(githubURL, '_blank');
-            
-            showStatus('✓ Opening GitHub to create issue. Click "Submit new issue" when ready!', false);
+**Submitted via:** anmore.bike drawing tool`;
+                
+                const issueTitle = encodeURIComponent(`[ROUTE] ${routeName}`);
+                const issueBodyEncoded = encodeURIComponent(issueBody);
+                
+                const githubURL = `https://github.com/jpgaviria2/anmore-bike/issues/new?title=${issueTitle}&body=${issueBodyEncoded}&labels=route-submission,pending-review`;
+                
+                // Show alert with instructions
+                alert('✅ GeoJSON copied to clipboard!\n\n' +
+                      '📝 Next steps:\n' +
+                      '1. GitHub will open in a new tab\n' +
+                      '2. Find the "GeoJSON" section\n' +
+                      '3. Delete "Paste here" text\n' +
+                      '4. Paste your GeoJSON (Ctrl+V or Cmd+V)\n' +
+                      '5. Click "Submit new issue"\n\n' +
+                      'Click OK to continue...');
+                
+                // Open GitHub in new tab
+                window.open(githubURL, '_blank');
+                
+                showStatus('✓ GeoJSON copied! Paste it in the GitHub issue (opened in new tab)', false);
+                
+            } catch (err) {
+                // Clipboard API failed, show alternative
+                alert('⚠️ Could not copy to clipboard.\n\n' +
+                      'Alternative: Click "📋 Copy GeoJSON" button first,\n' +
+                      'then click "Submit via GitHub Issue" again.');
+                showStatus('Copy GeoJSON first, then try again', true);
+            }
         };
         
         // Send via Nostr DM
