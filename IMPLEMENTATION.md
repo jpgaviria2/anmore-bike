@@ -557,7 +557,7 @@ git clone <repo-url> && cd Bike-Train
 npm install
 
 # Create .env file
-echo "NOSTR_NSEC=nsec1eehs48k77xychlm82nayy0al49t83tzdmqjv6rt92q20urts5glqsupdus" > .env
+echo "NOSTR_NSEC=YOUR_NSEC_KEY_HERE" > .env  # Replace with your actual nsec (keep private!)
 
 # Run monitor (use screen/tmux for persistence)
 screen -S monitor

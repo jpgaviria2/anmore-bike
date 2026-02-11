@@ -192,8 +192,9 @@
         
         <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
             <h3>📨 Optional: Send via Nostr DM</h3>
-            <p>Click "Send via Nostr DM" to send the GeoJSON to admin nsec (requires you to login with your nsec first)</p>
-            <p style="margin-top: 10px;"><strong>Admin nsec:</strong> nsec1lpzj8ycngga6eaymsxytf45nfmpjp5c7fgdvv7wf9jdtsm98hmvs2hwt5k</p>
+            <p>Click "Send via Nostr DM" to send the GeoJSON to admin (requires you to login with your nsec first)</p>
+            <p style="margin-top: 10px;"><strong>Admin npub:</strong> npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm</p>
+            <p style="margin-top: 5px; font-size: 12px; color: #856404;"><em>Note: Private keys (nsec) are never published for security.</em></p>
         </div>
         
         <div id="geojson-preview" style="display: none;">
@@ -211,7 +212,8 @@
         import { SimplePool } from 'https://esm.sh/nostr-tools@2.7.2/pool';
         
         const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
-        const ADMIN_NSEC = 'nsec1lpzj8ycngga6eaymsxytf45nfmpjp5c7fgdvv7wf9jdtsm98hmvs2hwt5k';
+        const ADMIN_NPUB = 'npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm';
+        // Note: Admin nsec is kept private for security. Use WhatsApp submission instead.
         
         let map, drawnItems;
         let userSecretKey = null;
@@ -464,10 +466,9 @@ Paste here (Ctrl+V / Cmd+V)
             showStatus('Sending DM...', false);
             
             try {
-                // Get admin pubkey
-                const adminDecoded = nip19.decode(ADMIN_NSEC);
-                const adminSecretKey = adminDecoded.data;
-                const adminPubkey = getPublicKey(adminSecretKey);
+                // Get admin pubkey from npub
+                const adminDecoded = nip19.decode(ADMIN_NPUB);
+                const adminPubkey = adminDecoded.data;
                 
                 // Encrypt message
                 const message = `New bike route drawn:\n\nGeoJSON:\n${JSON.stringify(geoJSON, null, 2)}`;

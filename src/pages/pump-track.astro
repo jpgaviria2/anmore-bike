@@ -516,7 +516,9 @@ import ProfileModal from '../components/ProfileModal.astro';
       if (typeof window.initAnmoreRoutes === 'function') {
         window.initAnmoreRoutes(map, {
           enableDrawing: true,
-          enableSubmission: true
+          enableSubmission: true,
+          category: 'pump-track', // Only show pump-track locations on this page
+          defaultCategory: 'pump-track' // Default category for new submissions
         });
       }
       

@@ -22,6 +22,10 @@
    * Initialize route system on a Leaflet map
    * @param {L.Map} map - Leaflet map instance
    * @param {Object} options - Configuration options
+   *   - enableDrawing: boolean (default true)
+   *   - enableSubmission: boolean (default true)
+   *   - category: string or array - filter routes by category (e.g., 'bike-train', ['bike-train', 'recreation'])
+   *   - defaultCategory: string - default category for new submissions
    */
   window.initAnmoreRoutes = function(map, options = {}) {
     if (!map || !window.L) {
@@ -30,9 +34,10 @@
     }
     
     window.anmoreRoutes.map = map;
+    window.anmoreRoutes.options = options;
     
-    // Load and display approved routes
-    loadApprovedRoutes(map);
+    // Load and display approved routes (with optional category filter)
+    loadApprovedRoutes(map, options.category);
     
     // Add drawing tools if enabled (default: true)
     if (options.enableDrawing !== false) {
@@ -44,13 +49,15 @@
       addWhatsAppButton(map, options);
     }
     
-    console.log('✅ Anmore route system initialized');
+    console.log('✅ Anmore route system initialized', options.category ? `(category: ${options.category})` : '');
   };
   
   /**
    * Load approved routes from routes.json and display on map
+   * @param {L.Map} map - Leaflet map instance
+   * @param {string|array} categoryFilter - Optional category filter (e.g., 'bike-train' or ['bike-train', 'recreation'])
    */
-  function loadApprovedRoutes(map) {
+  function loadApprovedRoutes(map, categoryFilter) {
     fetch(ROUTES_URL + '?' + Date.now()) // Cache bust
       .then(response => response.json())
       .then(data => {
@@ -59,8 +66,30 @@
           return;
         }
         
+        // Filter by category if specified
+        let features = data.features;
+        if (categoryFilter) {
+          const categories = Array.isArray(categoryFilter) ? categoryFilter : [categoryFilter];
+          features = features.filter(feature => {
+            const cat = feature.properties?.category;
+            return cat && categories.includes(cat);
+          });
+          console.log(`🔍 Filtered ${data.features.length} routes → ${features.length} match category: ${categoryFilter}`);
+        }
+        
+        if (features.length === 0) {
+          console.log(`📝 No routes found for category: ${categoryFilter}`);
+          return;
+        }
+        
+        // Create filtered GeoJSON
+        const filteredData = {
+          ...data,
+          features: features
+        };
+        
         // Create layer for approved routes
-        const approvedLayer = L.geoJSON(data, {
+        const approvedLayer = L.geoJSON(filteredData, {
           style: {
             color: '#059669', // Green
             weight: 4,
@@ -88,7 +117,7 @@
         }).addTo(map);
         
         window.anmoreRoutes.approvedLayer = approvedLayer;
-        console.log(`✅ Loaded ${data.features.length} approved route(s)`);
+        console.log(`✅ Loaded ${features.length} approved route(s)`);
       })
       .catch(error => {
         console.log('ℹ️ No routes file yet (this is normal for first use)');
@@ -198,6 +227,7 @@
    */
   function submitViaWhatsApp() {
     const drawingLayer = window.anmoreRoutes.drawingLayer;
+    const options = window.anmoreRoutes.options || {};
     
     if (!drawingLayer || drawingLayer.getLayers().length === 0) {
       alert('⚠️ Please draw a route on the map first!');
@@ -210,7 +240,10 @@
     
     const description = prompt('Brief description (optional):', '');
     const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
-    const category = prompt('Category (bike-train/recreation/commute):', 'bike-train');
+    
+    // Use default category from options, or prompt user
+    const defaultCat = options.defaultCategory || 'bike-train';
+    const category = prompt('Category (bike-train/recreation/commute/pump-track/trail):', defaultCat);
     
     // Convert drawn features to GeoJSON
     const geoJSON = drawingLayer.toGeoJSON();

@@ -573,7 +573,9 @@ import ProfileModal from '../components/ProfileModal.astro';
       if (typeof window.initAnmoreRoutes === 'function') {
         window.initAnmoreRoutes(map, {
           enableDrawing: true,
-          enableSubmission: true
+          enableSubmission: true,
+          category: 'bike-train', // Only show bike-train routes on this page
+          defaultCategory: 'bike-train' // Default category for new submissions
         });
       } else {
         console.error('❌ map-routes.js not loaded');

@@ -107,7 +107,7 @@ For receiving form submissions, run `monitor.js` on a separate server:
 git clone https://github.com/jpgaviria2/anmore-bike.git
 cd anmore-bike
 npm install
-echo "NOSTR_NSEC=nsec1eehs48k77xychlm82nayy0al49t83tzdmqjv6rt92q20urts5glqsupdus" > .env
+echo "NOSTR_NSEC=YOUR_NSEC_KEY_HERE" > .env  # Replace with your actual nsec (keep private!)
 node scripts/monitor.js
 ```
 

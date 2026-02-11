@@ -352,7 +352,9 @@ import ProfileModal from '../components/ProfileModal.astro';
       if (typeof window.initAnmoreRoutes === 'function') {
         window.initAnmoreRoutes(map, {
           enableDrawing: true,
-          enableSubmission: true
+          enableSubmission: true,
+          category: 'trail', // Only show trail routes on this page
+          defaultCategory: 'trail' // Default category for new submissions
         });
       }
       

@@ -34,7 +34,7 @@ A community-driven platform for bike resources in Anmore, BC using Nostr protoco
 
 2. **Configure environment** (create `.env` file):
    ```
-   NOSTR_NSEC=nsec1eehs48k77xychlm82nayy0al49t83tzdmqjv6rt92q20urts5glqsupdus
+   NOSTR_NSEC=YOUR_NSEC_KEY_HERE  # Replace with your actual nsec (keep private!)
    ```
    
    > ⚠️ **Security**: Never commit `.env` to git. Use `.env.example` as template.
