@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Comprehensive bike resources for Anmore BC - clinics, trails, pump tracks, and bike trains"><meta name="generator" content="Astro v5.17.1"><!-- PWA --><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#16a34a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Anmore.bike"><!-- Base path for JS --><meta name="base-path" content><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/favicon.svg"><!-- Leaflet CSS --><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"><title>Bike Train to School - Anmore.bike</title><script>(function(){const base = "/";
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register(`${base}sw.js`).then(
+            registration => console.log('SW registered:', registration),
+            error => console.error('SW registration failed:', error)
+          );
+        });
+      }
+      
+      // Listen for online/offline events
+      window.addEventListener('online', () => {
+        document.body.classList.remove('offline');
+        document.body.classList.add('online');
+      });
+      
+      window.addEventListener('offline', () => {
+        document.body.classList.remove('online');
+        document.body.classList.add('offline');
+      });
+    })();</script><link rel="stylesheet" href="/_astro/admin.DLx2nVZg.css"></head> <body class="min-h-screen bg-gray-50"> <!-- Offline indicator --> <div id="offline-indicator" class="hidden offline:block fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 text-sm z-50">
+You are offline. Forms will be queued and sent when connection is restored.
+</div> <!-- PWA install prompt --> <div id="pwa-install" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50"> <p class="font-semibold mb-2">Install Anmore.bike</p> <p class="text-sm mb-3">Add to your home screen for quick access and offline use!</p> <div class="flex gap-2"> <button id="pwa-install-btn" class="bg-white text-green-600 px-4 py-2 rounded font-semibold text-sm">
+Install
+</button> <button id="pwa-dismiss" class="bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm">
+Not Now
+</button> </div> </div>  <nav class="bg-green-600 text-white sticky top-0 z-40 shadow-lg"> <div class="container mx-auto px-4"> <div class="flex items-center justify-between py-4"> <!-- Logo/Brand --> <a href="/" class="text-xl md:text-2xl font-bold flex items-center gap-2"> <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path> </svg> <span class="hidden sm:inline">Anmore.bike</span> </a> <!-- Desktop Navigation --> <div class="hidden lg:flex items-center gap-6"> <a href="/" class="hover:text-green-200 transition "> Home </a><a href="/trail-building" class="hover:text-green-200 transition "> Trail Building </a><a href="/pump-track" class="hover:text-green-200 transition "> Pump Track </a><a href="/bike-train" class="hover:text-green-200 transition "> Bike Train </a><a href="/clinics" class="hover:text-green-200 transition "> Bike Clinics </a><a href="/afterschool" class="hover:text-green-200 transition "> Afterschool Programs </a><a href="/leaderboard" class="hover:text-green-200 transition "> Leaderboard </a><a href="/admin" class="hover:text-green-200 transition "> 🔒 Admin </a> </div> <!-- Mobile Menu Button --> <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-green-700 transition" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </button> </div> <!-- Mobile Menu --> <div id="mobile-menu" class="hidden lg:hidden pb-4"> <a href="/" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Home </a><a href="/trail-building" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Trail Building </a><a href="/pump-track" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Pump Track </a><a href="/bike-train" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Train </a><a href="/clinics" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Clinics </a><a href="/afterschool" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Afterschool Programs </a><a href="/leaderboard" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Leaderboard </a><a href="/admin" class="block py-3 px-4 hover:bg-green-700 rounded transition "> 🔒 Admin </a> </div> </div> </nav> <script type="module">const s=document.getElementById("mobile-menu-btn"),e=document.getElementById("mobile-menu"),n=document.getElementById("menu-icon"),d=document.getElementById("close-icon");s?.addEventListener("click",()=>{e?.classList.contains("hidden")?(e?.classList.remove("hidden"),n?.classList.add("hidden"),d?.classList.remove("hidden")):(e?.classList.add("hidden"),n?.classList.remove("hidden"),d?.classList.add("hidden"))});</script> <div class="container mx-auto px-4 py-8 md:py-12"> <!-- Header --> <div class="max-w-4xl mx-auto mb-8"> <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+🚴 Bike Train Routes
+</h1> <p class="text-lg text-gray-700 mb-4">
+Draw your bike train route on the map and submit it via WhatsApp!
+</p> <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4"> <h3 class="font-bold text-green-900 mb-2">📍 How to Submit a Route:</h3> <ol class="text-sm text-green-800 space-y-1 ml-4"> <li>1. Draw your route using the tools on the left side of the map</li> <li>2. Click the <strong>"Submit via WhatsApp"</strong> button (top right)</li> <li>3. Enter route details when prompted</li> <li>4. WhatsApp will open with your route data ready to send!</li> </ol> </div> </div> <!-- Map Section --> <div class="max-w-6xl mx-auto mb-8"> <div class="bg-white rounded-xl shadow-lg overflow-hidden"> <div class="bg-green-600 text-white p-4"> <h2 class="text-xl font-bold">Interactive Route Map</h2> <p class="text-sm text-green-100 mt-1">
+Green routes = approved. Draw your route, then click "Submit via WhatsApp" (top right).
+</p> </div> <div id="map" class="h-[500px] md:h-[600px]"></div> <div class="p-4 bg-gray-50 border-t-2 border-gray-200"> <div class="flex flex-wrap gap-2 items-center justify-between"> <div class="flex gap-2 items-center text-sm text-gray-600"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span>Use the polyline tool (left side) to draw your route</span> </div> <button id="clear-map" class="text-red-600 hover:text-red-700 font-semibold text-sm">
+🗑️ Clear Drawing
+</button> </div> </div> </div> </div> <!-- Submission Buttons --> <div class="max-w-4xl mx-auto mb-8"> <div class="bg-white rounded-xl shadow-lg p-6"> <h3 class="text-xl font-bold text-gray-900 mb-4">📤 Submit Your Route</h3> <div class="grid md:grid-cols-2 gap-4"> <!-- WhatsApp Button --> <button id="submit-whatsapp-manual" class="flex items-center justify-center gap-3 bg-green-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-green-700 transition shadow-lg"> <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"> <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path> </svg>
+Submit via WhatsApp
+</button> <!-- Nostr DM Button --> <button id="submit-nostr-dm" class="flex items-center justify-center gap-3 bg-purple-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg"> <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"> <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path> </svg>
+Send via Nostr DM
+</button> </div> <p class="text-sm text-gray-500 text-center mt-4">
+Choose your preferred method to submit the route to the admin for approval
+</p> </div> </div> </div>  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script> <script src="/map-routes.js"></script> <script>
+    // Initialize map when loaded
+    window.addEventListener('load', () => {
+      if (typeof L === 'undefined') {
+        console.error('❌ Leaflet not loaded');
+        return;
+      }
+      
+      const ANMORE_CENTER = { lat: 49.3257, lng: -122.8565 };
+      const DEFAULT_ZOOM = 14;
+      
+      const map = L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Initialize Anmore route system with WhatsApp
+      if (typeof window.initAnmoreRoutes === 'function') {
+        window.initAnmoreRoutes(map, {
+          enableDrawing: true,
+          enableSubmission: true,
+          category: 'bike-train',
+          defaultCategory: 'bike-train'
+        });
+        console.log('✅ Anmore route system initialized');
+      } else {
+        console.error('❌ map-routes.js not loaded - WhatsApp button will not appear!');
+      }
+      
+      // Clear map button
+      document.getElementById('clear-map')?.addEventListener('click', () => {
+        if (window.clearAnmoreDrawing) {
+          window.clearAnmoreDrawing();
+        }
+      });
+      
+      // Manual WhatsApp button (in case map-routes.js button isn't visible)
+      document.getElementById('submit-whatsapp-manual')?.addEventListener('click', () => {
+        if (window.anmoreRoutes?.drawingLayer) {
+          const layers = window.anmoreRoutes.drawingLayer.getLayers();
+          if (layers.length === 0) {
+            alert('⚠️ Please draw a route on the map first!');
+            return;
+          }
+          
+          // Get route details
+          const routeName = prompt('Route name:', 'New Bike Route');
+          if (!routeName) return;
+          
+          const description = prompt('Brief description (optional):', '');
+          const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+          
+          // Get GeoJSON
+          const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
+          geoJSON.metadata = {
+            created: new Date().toISOString(),
+            tool: 'anmore-bike-map',
+            location: 'Anmore, BC',
+            type: 'bike-route'
+          };
+          
+          geoJSON.features.forEach(feature => {
+            feature.properties = {
+              name: routeName,
+              description: description || '',
+              difficulty: difficulty,
+              category: 'bike-train'
+            };
+          });
+          
+          const geoJSONString = JSON.stringify(geoJSON, null, 2);
+          
+          // Copy to clipboard
+          navigator.clipboard.writeText(geoJSONString).then(() => {
+            const message = `🚴 New Bike Route Submission\n\n**Route Name:** ${routeName}\n**Description:** ${description || 'N/A'}\n**Difficulty:** ${difficulty}\n**Category:** bike-train\n\n**GeoJSON Data:**\n(Copied to clipboard - paste below)\n\nSubmitted from anmore.bike map`;
+            
+            const whatsappURL = `https://wa.me/17783841055?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+            
+            alert('✅ GeoJSON copied to clipboard!\n\nWhatsApp is opening...\n\n1. Type your message in WhatsApp\n2. Press and hold in the text field\n3. Tap "Paste" to add the GeoJSON\n4. Click Send!');
+          }).catch(() => {
+            alert('❌ Could not copy to clipboard. Try using the green WhatsApp button on the map instead.');
+          });
+        } else {
+          alert('⚠️ Map system not ready. Please refresh the page.');
+        }
+      });
+      
+      // Nostr DM button - with profile authentication
+      document.getElementById('submit-nostr-dm')?.addEventListener('click', async () => {
+        if (window.anmoreRoutes?.drawingLayer) {
+          const layers = window.anmoreRoutes.drawingLayer.getLayers();
+          if (layers.length === 0) {
+            alert('⚠️ Please draw a route on the map first!');
+            return;
+          }
+          
+          // Import Nostr tools first
+          try {
+            const { generateSecretKey, getPublicKey, finalizeEvent } = await import('https://esm.sh/nostr-tools@2.7.2/pure');
+            const nip19 = await import('https://esm.sh/nostr-tools@2.7.2/nip19');
+            const nip04 = await import('https://esm.sh/nostr-tools@2.7.2/nip04');
+            const { SimplePool } = await import('https://esm.sh/nostr-tools@2.7.2/pool');
+            
+            const ADMIN_NPUB = 'npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm';
+            const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
+            
+            // STEP 1: Profile Authentication (REQUIRED)
+            let userSecretKey = localStorage.getItem('nostr_sk');
+            let userProfile = localStorage.getItem('nostr_profile');
+            
+            if (!userSecretKey || !userProfile) {
+              // No profile exists - create one
+              alert('🔐 Profile Setup Required\n\nBefore sending messages, you need to create your profile.\n\nThis keeps your identity consistent across submissions.');
+              
+              const username = prompt('Choose a username (or leave blank for anonymous):', '');
+              const displayName = username || 'Anonymous';
+              
+              const hasNsec = confirm('Do you already have a Nostr key (nsec)?');
+              
+              if (hasNsec) {
+                const nsecInput = prompt('Paste your nsec:');
+                if (!nsecInput || !nsecInput.startsWith('nsec1')) {
+                  alert('❌ Invalid nsec! Please try again.');
+                  return;
+                }
+                try {
+                  const decoded = nip19.decode(nsecInput);
+                  userSecretKey = decoded.data;
+                } catch (error) {
+                  alert('❌ Failed to decode nsec: ' + error.message);
+                  return;
+                }
+              } else {
+                // Generate new key
+                userSecretKey = generateSecretKey();
+                const nsec = nip19.nsecEncode(userSecretKey);
+                
+                // Show them their new key
+                const copyBox = document.createElement('div');
+                copyBox.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border:3px solid #059669;border-radius:12px;z-index:10000;max-width:500px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+                copyBox.innerHTML = `
+                  <h2 style="color:#059669;margin-bottom:15px;">🔑 Save Your Nostr Key!</h2>
+                  <p style="margin-bottom:15px;color:#666;">This is your identity. Save it somewhere safe!</p>
+                  <textarea readonly style="width:100%;height:80px;font-family:monospace;font-size:12px;padding:10px;border:2px solid #059669;border-radius:6px;margin-bottom:15px;">${nsec}</textarea>
+                  <button id="copy-key-btn" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
+                    📋 Copy Key
+                  </button>
+                  <button id="continue-btn" style="width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">
+                    ✓ I've Saved It - Continue
+                  </button>
+                  <p style="margin-top:10px;font-size:12px;color:#999;text-align:center;">Without this key, you can't prove future submissions are yours</p>
+                `;
+                document.body.appendChild(copyBox);
+                
+                await new Promise((resolve) => {
+                  document.getElementById('copy-key-btn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(nsec);
+                    document.getElementById('copy-key-btn').textContent = '✓ Copied!';
+                  });
+                  document.getElementById('continue-btn').addEventListener('click', () => {
+                    copyBox.remove();
+                    resolve();
+                  });
+                });
+              }
+              
+              // Save profile
+              const profile = {
+                displayName: displayName,
+                createdAt: new Date().toISOString()
+              };
+              
+              localStorage.setItem('nostr_sk', JSON.stringify(userSecretKey));
+              localStorage.setItem('nostr_profile', JSON.stringify(profile));
+              
+              alert(`✅ Profile created!\n\nUsername: ${displayName}\n\nYou can now send submissions via Nostr.`);
+              
+            } else {
+              // Profile exists - confirm identity
+              userSecretKey = JSON.parse(userSecretKey);
+              userProfile = JSON.parse(userProfile);
+              
+              const confirm_send = confirm(`Send as: ${userProfile.displayName}\n\nIs this correct?`);
+              if (!confirm_send) {
+                const change = confirm('Do you want to change your profile or use a different key?');
+                if (change) {
+                  localStorage.removeItem('nostr_sk');
+                  localStorage.removeItem('nostr_profile');
+                  alert('Profile cleared. Click the button again to create a new one.');
+                  return;
+                }
+              }
+            }
+            
+            // STEP 2: Get route details
+            const routeName = prompt('Route name:', 'New Bike Route');
+            if (!routeName) return;
+            
+            const description = prompt('Brief description (optional):', '');
+            const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+            
+            // STEP 3: Get GeoJSON
+            const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
+            geoJSON.metadata = {
+              created: new Date().toISOString(),
+              tool: 'anmore-bike-map',
+              location: 'Anmore, BC',
+              type: 'bike-route',
+              submittedBy: JSON.parse(localStorage.getItem('nostr_profile')).displayName
+            };
+            
+            geoJSON.features.forEach(feature => {
+              feature.properties = {
+                name: routeName,
+                description: description || '',
+                difficulty: difficulty,
+                category: 'bike-train'
+              };
+            });
+            
+            // STEP 4: Send encrypted DM
+            const adminDecoded = nip19.decode(ADMIN_NPUB);
+            const adminPubkey = adminDecoded.data;
+            
+            const userPubkey = getPublicKey(userSecretKey);
+            const userNpub = nip19.npubEncode(userPubkey);
+            
+            const dmMessage = `🚴 New Bike Route Submission
+
+**From:** ${JSON.parse(localStorage.getItem('nostr_profile')).displayName}
+**Npub:** ${userNpub}
+
+**Route Name:** ${routeName}
+**Description:** ${description || 'N/A'}
+**Difficulty:** ${difficulty}
+**Category:** bike-train
+
+**GeoJSON Data:**
+\`\`\`json
+${JSON.stringify(geoJSON, null, 2)}
+\`\`\`
+
+Submitted from anmore.bike via Nostr DM`;
+            
+            // Encrypt and send
+            const encrypted = await nip04.encrypt(userSecretKey, adminPubkey, dmMessage);
+            
+            const eventTemplate = {
+              kind: 4,
+              created_at: Math.floor(Date.now() / 1000),
+              tags: [['p', adminPubkey]],
+              content: encrypted
+            };
+            
+            const signedEvent = finalizeEvent(eventTemplate, userSecretKey);
+            
+            alert('📡 Sending to Nostr relays...');
+            
+            const pool = new SimplePool();
+            await pool.publish(RELAYS, signedEvent);
+            pool.close(RELAYS);
+            
+            alert(`✅ Route sent via Nostr DM!\n\nFrom: ${JSON.parse(localStorage.getItem('nostr_profile')).displayName}\n\nYour submission has been encrypted and sent to the admin.`);
+            
+          } catch (error) {
+            console.error('Nostr error:', error);
+            alert('❌ Failed to send via Nostr: ' + error.message);
+          }
+        } else {
+          alert('⚠️ Map system not ready. Please refresh the page.');
+        }
+      });
+    });
+  </script>  <script type="module">let n;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),n=e;const t=document.getElementById("pwa-install");t&&t.classList.remove("hidden")});document.getElementById("pwa-install-btn")?.addEventListener("click",async()=>{if(n){n.prompt();const{outcome:e}=await n.userChoice;console.log(`User response: ${e}`),n=null;const t=document.getElementById("pwa-install");t&&t.classList.add("hidden")}});document.getElementById("pwa-dismiss")?.addEventListener("click",()=>{const e=document.getElementById("pwa-install");e&&e.classList.add("hidden")});</script> </body> </html>

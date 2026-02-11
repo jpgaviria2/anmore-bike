@@ -1,0 +1,307 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Comprehensive bike resources for Anmore BC - clinics, trails, pump tracks, and bike trains"><meta name="generator" content="Astro v5.17.1"><!-- PWA --><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#16a34a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Anmore.bike"><!-- Base path for JS --><meta name="base-path" content><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/favicon.svg"><!-- Leaflet CSS --><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"><title>Pump Track Ideas - Anmore.bike</title><script>(function(){const base = "/";
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register(`${base}sw.js`).then(
+            registration => console.log('SW registered:', registration),
+            error => console.error('SW registration failed:', error)
+          );
+        });
+      }
+      
+      // Listen for online/offline events
+      window.addEventListener('online', () => {
+        document.body.classList.remove('offline');
+        document.body.classList.add('online');
+      });
+      
+      window.addEventListener('offline', () => {
+        document.body.classList.remove('online');
+        document.body.classList.add('offline');
+      });
+    })();</script><link rel="stylesheet" href="/_astro/admin.DLx2nVZg.css"></head> <body class="min-h-screen bg-gray-50"> <!-- Offline indicator --> <div id="offline-indicator" class="hidden offline:block fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 text-sm z-50">
+You are offline. Forms will be queued and sent when connection is restored.
+</div> <!-- PWA install prompt --> <div id="pwa-install" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50"> <p class="font-semibold mb-2">Install Anmore.bike</p> <p class="text-sm mb-3">Add to your home screen for quick access and offline use!</p> <div class="flex gap-2"> <button id="pwa-install-btn" class="bg-white text-green-600 px-4 py-2 rounded font-semibold text-sm">
+Install
+</button> <button id="pwa-dismiss" class="bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm">
+Not Now
+</button> </div> </div>  <nav class="bg-green-600 text-white sticky top-0 z-40 shadow-lg"> <div class="container mx-auto px-4"> <div class="flex items-center justify-between py-4"> <!-- Logo/Brand --> <a href="/" class="text-xl md:text-2xl font-bold flex items-center gap-2"> <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path> </svg> <span class="hidden sm:inline">Anmore.bike</span> </a> <!-- Desktop Navigation --> <div class="hidden lg:flex items-center gap-6"> <a href="/" class="hover:text-green-200 transition "> Home </a><a href="/trail-building" class="hover:text-green-200 transition "> Trail Building </a><a href="/pump-track" class="hover:text-green-200 transition "> Pump Track </a><a href="/bike-train" class="hover:text-green-200 transition "> Bike Train </a><a href="/clinics" class="hover:text-green-200 transition "> Bike Clinics </a><a href="/afterschool" class="hover:text-green-200 transition "> Afterschool Programs </a><a href="/leaderboard" class="hover:text-green-200 transition "> Leaderboard </a><a href="/admin" class="hover:text-green-200 transition "> 🔒 Admin </a> </div> <!-- Mobile Menu Button --> <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-green-700 transition" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </button> </div> <!-- Mobile Menu --> <div id="mobile-menu" class="hidden lg:hidden pb-4"> <a href="/" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Home </a><a href="/trail-building" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Trail Building </a><a href="/pump-track" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Pump Track </a><a href="/bike-train" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Train </a><a href="/clinics" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Clinics </a><a href="/afterschool" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Afterschool Programs </a><a href="/leaderboard" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Leaderboard </a><a href="/admin" class="block py-3 px-4 hover:bg-green-700 rounded transition "> 🔒 Admin </a> </div> </div> </nav> <script type="module">const s=document.getElementById("mobile-menu-btn"),e=document.getElementById("mobile-menu"),n=document.getElementById("menu-icon"),d=document.getElementById("close-icon");s?.addEventListener("click",()=>{e?.classList.contains("hidden")?(e?.classList.remove("hidden"),n?.classList.add("hidden"),d?.classList.remove("hidden")):(e?.classList.add("hidden"),n?.classList.remove("hidden"),d?.classList.add("hidden"))});</script> <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"> <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto"> <h2 class="text-2xl font-bold text-gray-900 mb-4">Create Your Profile</h2> <p class="text-gray-600 mb-6">
+Tell us a bit about yourself. This helps us build a strong community and recognize contributors.
+</p> <form id="profile-form" class="space-y-4"> <!-- Opt-in for public name --> <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4"> <label class="flex items-start gap-3 cursor-pointer"> <input type="checkbox" id="opt-in" name="optIn" class="mt-1 w-5 h-5 text-green-600 rounded"> <div> <span class="font-semibold text-gray-900">Share my name publicly</span> <p class="text-sm text-gray-600 mt-1">
+If unchecked, you'll appear as "bikeuser" on the leaderboard. You can change this later.
+</p> </div> </label> </div> <!-- Name field --> <div id="name-field" class="hidden"> <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
+Your Name
+</label> <input type="text" id="name" name="name" placeholder="John Smith" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> <!-- Contact info (private) --> <div> <label for="contact" class="block text-sm font-semibold text-gray-700 mb-2">
+Preferred Contact <span class="text-gray-500 font-normal">(optional, private)</span> </label> <input type="text" id="contact" name="contact" placeholder="Email or phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> <!-- Bio --> <div> <label for="bio" class="block text-sm font-semibold text-gray-700 mb-2">
+About You <span class="text-gray-500 font-normal">(optional)</span> </label> <textarea id="bio" name="bio" rows="3" placeholder="Tell us about your interest in biking..." class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"></textarea> </div> <!-- Interests --> <div> <label class="block text-sm font-semibold text-gray-700 mb-3">
+Interests <span class="text-gray-500 font-normal">(select all that apply)</span> </label> <div class="space-y-2"> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" name="interests" value="trail-building" class="w-4 h-4 text-green-600 rounded"> <span class="text-gray-700">Trail Building</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" name="interests" value="volunteering" class="w-4 h-4 text-green-600 rounded"> <span class="text-gray-700">Volunteering</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" name="interests" value="teaching" class="w-4 h-4 text-green-600 rounded"> <span class="text-gray-700">Teaching/Coaching</span> </label> <label class="flex items-center gap-2 cursor-pointer"> <input type="checkbox" name="interests" value="riding" class="w-4 h-4 text-green-600 rounded"> <span class="text-gray-700">Riding/Recreation</span> </label> </div> </div> <button type="submit" class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg">
+Create Profile & Continue
+</button> </form> </div> </div> <!-- Nsec Display Modal --> <div id="nsec-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"> <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8"> <div class="text-center mb-6"> <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"> <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> </div> <h2 class="text-2xl font-bold text-gray-900 mb-2">Submission Successful!</h2> <p class="text-gray-600">Your contribution has been recorded.</p> </div> <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6"> <p class="text-sm font-semibold text-gray-900 mb-2">
+🔑 Keep this secure to track your contributions
+</p> <p class="text-sm text-gray-600 mb-4">
+Save this key to appear on the leaderboard and track all your submissions. Anyone with this key can post as you.
+</p> <div class="bg-white border-2 border-gray-300 rounded-lg p-3 mb-3"> <code id="nsec-display" class="text-xs break-all text-gray-800"></code> </div> <div class="flex gap-2"> <button id="copy-nsec" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-green-700 transition">
+Copy Key
+</button> <button id="show-qr" class="flex-1 bg-gray-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-gray-700 transition">
+Show QR
+</button> </div> </div> <!-- QR Code --> <div id="qr-code" class="hidden mb-6 text-center"> <canvas id="qr-canvas" class="mx-auto border-2 border-gray-300 rounded-lg"></canvas> </div> <button id="close-nsec" class="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">
+Close
+</button> </div> </div> <!-- Nsec Login Modal --> <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"> <div class="bg-white rounded-xl max-w-md w-full p-6 md:p-8"> <h2 class="text-2xl font-bold text-gray-900 mb-4">Login with Your Key</h2> <p class="text-gray-600 mb-6">
+Enter your saved nsec key to restore your identity and track your contributions.
+</p> <form id="login-form" class="space-y-4"> <div> <label for="nsec-input" class="block text-sm font-semibold text-gray-700 mb-2">
+Your nsec Key
+</label> <input type="password" id="nsec-input" name="nsec" placeholder="nsec1..." class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition font-mono text-sm" required> <p class="text-xs text-gray-500 mt-2">Starts with "nsec1..."</p> </div> <div id="login-error" class="hidden bg-red-50 border-2 border-red-200 rounded-lg p-3"> <p class="text-sm text-red-600"></p> </div> <div class="flex gap-3"> <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">
+Login
+</button> <button type="button" id="cancel-login" class="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">
+Cancel
+</button> </div> </form> </div> </div> <script type="module" src="/_astro/ProfileModal.astro_astro_type_script_index_0_lang.l2A37vQE.js"></script> <div class="container mx-auto px-4 py-8 md:py-12"> <!-- Header --> <div class="max-w-4xl mx-auto mb-8"> <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+Pump Track Brainstorming
+</h1> <p class="text-lg text-gray-700 mb-4">
+Help us identify ideal locations for pump tracks in Anmore! A pump track is a circuit of 
+        rollers, banked turns, and features designed to be ridden by "pumping" rather than pedaling.
+</p> <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4"> <h3 class="font-bold text-green-900 mb-2">💡 What makes a good pump track location?</h3> <ul class="text-sm text-green-800 space-y-1"> <li>• Accessible to schools and neighborhoods</li> <li>• Relatively flat area (or can be graded)</li> <li>• Good drainage</li> <li>• Minimum 30m x 30m space</li> <li>• Park or public land</li> </ul> </div> </div> <!-- User Status Bar --> <div id="user-status" class="max-w-4xl mx-auto mb-6 bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-between"> <div class="flex items-center gap-3"> <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"> <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path> </svg> </div> <div> <p class="text-sm text-gray-600">Logged in as</p> <p id="display-name" class="font-semibold text-gray-900">bikeuser</p> </div> </div> <button id="login-btn" class="text-green-600 hover:text-green-700 font-semibold text-sm">
+Login with Key
+</button> </div> <!-- Map Section --> <div class="max-w-6xl mx-auto mb-8"> <div class="bg-white rounded-xl shadow-lg overflow-hidden"> <div class="bg-green-600 text-white p-4"> <h2 class="text-xl font-bold">Interactive Location Map</h2> <p class="text-sm text-green-100 mt-1">
+Draw a polygon to show the proposed pump track area or drop a marker for the location
+</p> </div> <div id="map" class="h-[500px] md:h-[600px]"></div> <div class="p-4 bg-gray-50 border-t-2 border-gray-200"> <div class="flex flex-wrap gap-2 items-center justify-between"> <div class="flex gap-2 items-center text-sm text-gray-600"> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span>Use polygon tool to outline the pump track area</span> </div> <button id="clear-map" class="text-red-600 hover:text-red-700 font-semibold text-sm">
+Clear All
+</button> </div> </div> </div> </div> <!-- Form Section --> <div class="max-w-4xl mx-auto"> <form id="pump-track-form" class="bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-6"> <h2 class="text-2xl font-bold text-gray-900 mb-4">Pump Track Proposal Details</h2> <!-- Basic Info --> <div class="grid md:grid-cols-2 gap-6"> <div> <label for="track-name" class="block text-sm font-semibold text-gray-700 mb-2">
+Pump Track Name <span class="text-red-500">*</span> </label> <input type="text" id="track-name" name="trackName" required placeholder="e.g., Anmore Community Pump Track" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> <div> <label for="track-status" class="block text-sm font-semibold text-gray-700 mb-2">
+Status <span class="text-red-500">*</span> </label> <select id="track-status" name="trackStatus" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select status...</option> <option value="proposed">Proposed (Idea Stage)</option> <option value="planned">Planned (Approved/Funded)</option> <option value="construction">Under Construction</option> <option value="existing">Existing Track</option> </select> </div> </div> <!-- OSM Metadata for Pump Track --> <div class="border-t-2 border-gray-200 pt-6"> <h3 class="text-lg font-bold text-gray-900 mb-4">Track Characteristics (OpenStreetMap Data)</h3> <div class="grid md:grid-cols-2 gap-6"> <div> <label for="surface" class="block text-sm font-semibold text-gray-700 mb-2">
+Surface Type <span class="text-red-500">*</span> </label> <select id="surface" name="surface" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select surface...</option> <option value="asphalt">Asphalt</option> <option value="concrete">Concrete</option> <option value="dirt">Dirt/Soil</option> <option value="wood">Wood</option> <option value="gravel">Gravel</option> <option value="compacted">Compacted Material</option> </select> <p class="text-xs text-gray-500 mt-1">OSM tag: surface=*</p> </div> <div> <label for="lit" class="block text-sm font-semibold text-gray-700 mb-2">
+Lighting Available?
+</label> <select id="lit" name="lit" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="yes">Yes - Has lighting</option> <option value="no">No - No lighting</option> <option value="sunset-sunrise">Automatic (sunset to sunrise)</option> </select> <p class="text-xs text-gray-500 mt-1">OSM tag: lit=*</p> </div> <div> <label for="skill-level" class="block text-sm font-semibold text-gray-700 mb-2">
+Target Skill Level <span class="text-red-500">*</span> </label> <select id="skill-level" name="skillLevel" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select level...</option> <option value="beginner">Beginner (Kids/New riders)</option> <option value="intermediate">Intermediate</option> <option value="advanced">Advanced</option> <option value="expert">Expert</option> <option value="all">All Levels</option> </select> </div> <div> <label for="loop" class="block text-sm font-semibold text-gray-700 mb-2">
+Loop Configuration
+</label> <select id="loop" name="loop" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="yes">Closed Loop (circular)</option> <option value="no">Linear/Back-and-forth</option> </select> <p class="text-xs text-gray-500 mt-1">OSM tag: loop=*</p> </div> </div> </div> <!-- Dimensions --> <div class="border-t-2 border-gray-200 pt-6"> <h3 class="text-lg font-bold text-gray-900 mb-4">Dimensions</h3> <div class="grid md:grid-cols-3 gap-6"> <div> <label for="length" class="block text-sm font-semibold text-gray-700 mb-2">
+Track Length (meters)
+</label> <input type="number" id="length" name="length" step="1" placeholder="100" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> <div> <label for="width" class="block text-sm font-semibold text-gray-700 mb-2">
+Track Width (meters)
+</label> <input type="number" id="width" name="width" step="0.1" placeholder="2.0" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> <div> <label for="area" class="block text-sm font-semibold text-gray-700 mb-2">
+Total Area (sq meters)
+</label> <input type="number" id="area" name="area" step="1" placeholder="1000" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> </div> </div> </div> <!-- Features --> <div class="border-t-2 border-gray-200 pt-6"> <h3 class="text-lg font-bold text-gray-900 mb-4">Features & Elements</h3> <div class="mb-4"> <label class="block text-sm font-semibold text-gray-700 mb-3">
+Select features included in this pump track:
+</label> <div class="grid md:grid-cols-2 gap-3"> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="rollers" class="w-4 h-4 text-green-600 rounded"> <span>Rollers (bumps to pump over)</span> </label> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="berms" class="w-4 h-4 text-green-600 rounded"> <span>Berms (banked turns)</span> </label> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="jumps" class="w-4 h-4 text-green-600 rounded"> <span>Jumps</span> </label> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="tabletops" class="w-4 h-4 text-green-600 rounded"> <span>Table Tops</span> </label> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="manual-pads" class="w-4 h-4 text-green-600 rounded"> <span>Manual Pads</span> </label> <label class="flex items-center gap-2"> <input type="checkbox" name="features" value="rhythm-section" class="w-4 h-4 text-green-600 rounded"> <span>Rhythm Section</span> </label> </div> </div> </div> <!-- Access & Amenities --> <div class="border-t-2 border-gray-200 pt-6"> <h3 class="text-lg font-bold text-gray-900 mb-4">Access & Amenities</h3> <div class="grid md:grid-cols-2 gap-6"> <div> <label for="access" class="block text-sm font-semibold text-gray-700 mb-2">
+Access Type
+</label> <select id="access" name="access" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="yes">Public - Open to all</option> <option value="permissive">Permissive</option> <option value="private">Private</option> <option value="customers">Customers only</option> </select> <p class="text-xs text-gray-500 mt-1">OSM tag: access=*</p> </div> <div> <label for="fee" class="block text-sm font-semibold text-gray-700 mb-2">
+Usage Fee Required?
+</label> <select id="fee" name="fee" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="no">Free to use</option> <option value="yes">Fee required</option> </select> <p class="text-xs text-gray-500 mt-1">OSM tag: fee=*</p> </div> <div> <label for="wheelchair" class="block text-sm font-semibold text-gray-700 mb-2">
+Wheelchair Accessible?
+</label> <select id="wheelchair" name="wheelchair" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="yes">Yes - Fully accessible</option> <option value="limited">Limited accessibility</option> <option value="no">Not accessible</option> </select> <p class="text-xs text-gray-500 mt-1">For spectators/adaptive bikes</p> </div> <div> <label for="parking" class="block text-sm font-semibold text-gray-700 mb-2">
+Parking Available?
+</label> <select id="parking" name="parking" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <option value="">Select...</option> <option value="yes">Yes</option> <option value="no">No</option> <option value="street">Street parking only</option> </select> </div> </div> </div> <!-- Additional Details --> <div class="border-t-2 border-gray-200 pt-6"> <h3 class="text-lg font-bold text-gray-900 mb-4">Additional Information</h3> <div class="space-y-4"> <div> <label for="operator" class="block text-sm font-semibold text-gray-700 mb-2">
+Operator/Maintenance Responsibility
+</label> <input type="text" id="operator" name="operator" placeholder="e.g., Anmore Parks & Recreation, TORCA" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <p class="text-xs text-gray-500 mt-1">Who will maintain it?</p> </div> <div> <label for="opening-hours" class="block text-sm font-semibold text-gray-700 mb-2">
+Opening Hours
+</label> <input type="text" id="opening-hours" name="openingHours" placeholder="e.g., Dawn to dusk, 24/7, Mo-Su 08:00-20:00" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <p class="text-xs text-gray-500 mt-1">OSM tag: opening_hours=*</p> </div> <div> <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">
+Description & Rationale
+</label> <textarea id="description" name="description" rows="4" placeholder="Why this location? What community need does it serve? Special design features? Nearby schools/neighborhoods?" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition resize-none"></textarea> </div> <div> <label for="estimated-cost" class="block text-sm font-semibold text-gray-700 mb-2">
+Estimated Construction Cost
+</label> <input type="text" id="estimated-cost" name="estimatedCost" placeholder="e.g., $25,000 - $50,000" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <p class="text-xs text-gray-500 mt-1">Optional: helps with planning</p> </div> </div> </div> <!-- Volunteer Interest --> <div class="border-t-2 border-gray-200 pt-6"> <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4"> <label class="flex items-start gap-3 cursor-pointer"> <input type="checkbox" id="volunteer-build" name="volunteerBuild" class="mt-1 w-5 h-5 text-green-600 rounded"> <div> <span class="font-semibold text-gray-900">I'm interested in volunteering for construction</span> <p class="text-sm text-gray-600 mt-1">
+Check this if you'd like to help build this pump track when the project moves forward
+</p> </div> </label> </div> </div> <!-- Optional Email --> <div class="border-t-2 border-gray-200 pt-6"> <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+Email for Follow-up <span class="text-gray-500 font-normal">(optional)</span> </label> <input type="email" id="email" name="email" placeholder="your@email.com" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"> <p class="text-sm text-gray-500 mt-2">
+We'll contact you to discuss the proposal or coordinate volunteer opportunities
+</p> </div> <!-- Submit --> <div class="pt-4"> <button type="submit" class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
+Submit Pump Track Proposal
+</button> <p class="text-sm text-gray-500 text-center mt-3">
+Your submission will be sent securely via Nostr protocol
+</p> </div> <!-- Progress indicator --> <div id="submit-progress" class="hidden"> <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4"> <p id="progress-text" class="text-sm text-blue-900 text-center"></p> </div> </div> </form> </div> </div>  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script> <script src="/map-routes.js"></script> <script>
+    // Global variables
+    window.pumpTrackMap = null;
+    window.pumpTrackDrawnItems = null;
+    
+    // Hardcoded config
+    const ANMORE_CENTER = { lat: 49.3257, lng: -122.8565 };
+    const DEFAULT_ZOOM = 14;
+    
+    // Initialize map when Leaflet is loaded
+    window.addEventListener('load', () => {
+      if (typeof L === 'undefined' || !L.Control || !L.Control.Draw) {
+        console.error('❌ Leaflet or Leaflet.draw not loaded');
+        return;
+      }
+      console.log('✅ Leaflet and Leaflet.draw loaded');
+      
+      const map = L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      window.pumpTrackMap = map;
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Initialize Anmore route system (loads approved routes, adds drawing tools, WhatsApp submit)
+      if (typeof window.initAnmoreRoutes === 'function') {
+        window.initAnmoreRoutes(map, {
+          enableDrawing: true,
+          enableSubmission: true,
+          category: 'pump-track', // Only show pump-track locations on this page
+          defaultCategory: 'pump-track' // Default category for new submissions
+        });
+      }
+      
+      // Keep old drawing layer reference for backward compatibility
+      setTimeout(() => {
+        window.pumpTrackDrawnItems = window.anmoreRoutes.drawingLayer;
+      }, 100);
+    });
+  </script> <script type="module">
+    import { sendEncryptedDM, formatFormAsHTML, getStoredKeypair } from '../lib/nostr.ts';
+    import { getProfile, getDisplayName } from '../lib/profile.ts';
+    
+    window.addEventListener('load', () => {
+              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41]
+            })
+          }
+        }
+      });
+      map.addControl(drawControl);
+      
+      map.on('draw:created', (e: any) => {
+        drawnItems.addLayer(e.layer);
+      });
+      
+      // Clear map button
+      document.getElementById('clear-map')?.addEventListener('click', () => {
+        (window as any).pumpTrackDrawnItems?.clearLayers();
+      });
+      
+      // Form submission with map data
+      const form = document.getElementById('pump-track-form') as HTMLFormElement;
+      const submitProgress = document.getElementById('submit-progress');
+      const progressText = document.getElementById('progress-text');
+      
+      form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Check if user has profile/keypair
+      let keypair = getStoredKeypair();
+      let profile = getProfile();
+      
+      if (!keypair || !profile) {
+        // Show profile modal
+        (window as any).showProfileModal();
+        
+        // Wait for profile creation
+        await new Promise((resolve) => {
+          window.addEventListener('profile-created', resolve, { once: true });
+        });
+        
+        keypair = getStoredKeypair();
+        profile = getProfile();
+      }
+      
+      if (!keypair || !profile) {
+        alert('Failed to create profile. Please try again.');
+        return;
+      }
+      
+      // Collect form data
+      const formData = new FormData(form);
+      const pumpTrackData: any = {};
+      
+      // Collect features array
+      const features: string[] = [];
+      formData.getAll('features').forEach(feature => {
+        features.push(feature as string);
+      });
+      
+      formData.forEach((value, key) => {
+        if (key === 'features') {
+          pumpTrackData.features = features.join(', ');
+        } else if (value) {
+          pumpTrackData[key] = value;
+        }
+      });
+      
+      // Add OSM-specific tags for easy upload
+      pumpTrackData.osmTags = {
+        leisure: 'track',
+        sport: 'bmx',
+        surface: pumpTrackData.surface,
+        lit: pumpTrackData.lit,
+        loop: pumpTrackData.loop,
+        access: pumpTrackData.access,
+        fee: pumpTrackData.fee,
+        wheelchair: pumpTrackData.wheelchair,
+        operator: pumpTrackData.operator,
+        opening_hours: pumpTrackData.openingHours
+      };
+      
+        // Get GeoJSON from map
+        const geoJSON = (window as any).pumpTrackDrawnItems.toGeoJSON();
+        
+        // Format message
+        const messageData = {
+          profile,
+          formType: 'Pump Track Proposal',
+          formData: pumpTrackData,
+          geoJSON: (geoJSON as any).features?.length > 0 ? geoJSON : undefined,
+          email: pumpTrackData.email
+        };
+        
+        const htmlMessage = formatFormAsHTML(messageData);
+        
+        // Show progress
+        submitProgress?.classList.remove('hidden');
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitBtn) submitBtn.disabled = true;
+        
+        // Send via Nostr
+        const success = await sendEncryptedDM(
+          keypair.secretKey,
+          htmlMessage,
+          (status) => {
+            if (progressText) progressText.textContent = status;
+          }
+        );
+        
+        if (success) {
+          // Show nsec modal for first-time users
+          const isFirstSubmission = !localStorage.getItem('has_submitted');
+          if (isFirstSubmission) {
+            (window as any).showNsecModal(keypair.nsec);
+            localStorage.setItem('has_submitted', 'true');
+          } else {
+            alert('Pump track proposal submitted successfully!');
+          }
+          
+          // Reset form
+          form.reset();
+          (window as any).pumpTrackDrawnItems?.clearLayers();
+        } else {
+          alert('Failed to submit. Please check your connection and try again.');
+        }
+        
+        // Hide progress
+        submitProgress?.classList.add('hidden');
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    });
+    
+    // Update display name
+    function updateDisplayName() {
+      const profile = getProfile();
+      const displayNameEl = document.getElementById('display-name');
+      if (displayNameEl) {
+        displayNameEl.textContent = getDisplayName(profile);
+      }
+    }
+    
+    updateDisplayName();
+    
+    // Login button
+    document.getElementById('login-btn')?.addEventListener('click', () => {
+      (window as any).showLoginModal();
+    });
+    
+    // Listen for login events
+    window.addEventListener('user-logged-in', () => {
+      updateDisplayName();
+    });
+    });
+  </script>  <script type="module">let n;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),n=e;const t=document.getElementById("pwa-install");t&&t.classList.remove("hidden")});document.getElementById("pwa-install-btn")?.addEventListener("click",async()=>{if(n){n.prompt();const{outcome:e}=await n.userChoice;console.log(`User response: ${e}`),n=null;const t=document.getElementById("pwa-install");t&&t.classList.add("hidden")}});document.getElementById("pwa-dismiss")?.addEventListener("click",()=>{const e=document.getElementById("pwa-install");e&&e.classList.add("hidden")});</script> </body> </html>

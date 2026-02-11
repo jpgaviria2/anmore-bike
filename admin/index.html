@@ -1,0 +1,507 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Comprehensive bike resources for Anmore BC - clinics, trails, pump tracks, and bike trains"><meta name="generator" content="Astro v5.17.1"><!-- PWA --><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#16a34a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Anmore.bike"><!-- Base path for JS --><meta name="base-path" content><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/favicon.svg"><!-- Leaflet CSS --><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"><title>Admin Dashboard - Anmore.bike</title><script>(function(){const base = "/";
+
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register(`${base}sw.js`).then(
+            registration => console.log('SW registered:', registration),
+            error => console.error('SW registration failed:', error)
+          );
+        });
+      }
+      
+      // Listen for online/offline events
+      window.addEventListener('online', () => {
+        document.body.classList.remove('offline');
+        document.body.classList.add('online');
+      });
+      
+      window.addEventListener('offline', () => {
+        document.body.classList.remove('online');
+        document.body.classList.add('offline');
+      });
+    })();</script><link rel="stylesheet" href="/_astro/admin.DLx2nVZg.css">
+<style>.bg-blue-600[data-astro-cid-2zp6q64z]{background-color:#2563eb}.bg-green-600[data-astro-cid-2zp6q64z]{background-color:#16a34a}.bg-purple-600[data-astro-cid-2zp6q64z]{background-color:#9333ea}.text-blue-100[data-astro-cid-2zp6q64z]{color:#dbeafe}.text-green-100[data-astro-cid-2zp6q64z]{color:#dcfce7}.text-purple-100[data-astro-cid-2zp6q64z]{color:#f3e8ff}
+</style></head> <body class="min-h-screen bg-gray-50"> <!-- Offline indicator --> <div id="offline-indicator" class="hidden offline:block fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 text-sm z-50">
+You are offline. Forms will be queued and sent when connection is restored.
+</div> <!-- PWA install prompt --> <div id="pwa-install" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50"> <p class="font-semibold mb-2">Install Anmore.bike</p> <p class="text-sm mb-3">Add to your home screen for quick access and offline use!</p> <div class="flex gap-2"> <button id="pwa-install-btn" class="bg-white text-green-600 px-4 py-2 rounded font-semibold text-sm">
+Install
+</button> <button id="pwa-dismiss" class="bg-green-700 text-white px-4 py-2 rounded font-semibold text-sm">
+Not Now
+</button> </div> </div>  <nav class="bg-green-600 text-white sticky top-0 z-40 shadow-lg"> <div class="container mx-auto px-4"> <div class="flex items-center justify-between py-4"> <!-- Logo/Brand --> <a href="/" class="text-xl md:text-2xl font-bold flex items-center gap-2"> <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path> </svg> <span class="hidden sm:inline">Anmore.bike</span> </a> <!-- Desktop Navigation --> <div class="hidden lg:flex items-center gap-6"> <a href="/" class="hover:text-green-200 transition "> Home </a><a href="/trail-building" class="hover:text-green-200 transition "> Trail Building </a><a href="/pump-track" class="hover:text-green-200 transition "> Pump Track </a><a href="/bike-train" class="hover:text-green-200 transition "> Bike Train </a><a href="/clinics" class="hover:text-green-200 transition "> Bike Clinics </a><a href="/afterschool" class="hover:text-green-200 transition "> Afterschool Programs </a><a href="/leaderboard" class="hover:text-green-200 transition "> Leaderboard </a><a href="/admin" class="hover:text-green-200 transition "> 🔒 Admin </a> </div> <!-- Mobile Menu Button --> <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-green-700 transition" aria-label="Toggle menu"> <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path> <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </button> </div> <!-- Mobile Menu --> <div id="mobile-menu" class="hidden lg:hidden pb-4"> <a href="/" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Home </a><a href="/trail-building" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Trail Building </a><a href="/pump-track" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Pump Track </a><a href="/bike-train" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Train </a><a href="/clinics" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Bike Clinics </a><a href="/afterschool" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Afterschool Programs </a><a href="/leaderboard" class="block py-3 px-4 hover:bg-green-700 rounded transition "> Leaderboard </a><a href="/admin" class="block py-3 px-4 hover:bg-green-700 rounded transition "> 🔒 Admin </a> </div> </div> </nav> <script type="module">const s=document.getElementById("mobile-menu-btn"),e=document.getElementById("mobile-menu"),n=document.getElementById("menu-icon"),d=document.getElementById("close-icon");s?.addEventListener("click",()=>{e?.classList.contains("hidden")?(e?.classList.remove("hidden"),n?.classList.add("hidden"),d?.classList.remove("hidden")):(e?.classList.add("hidden"),n?.classList.remove("hidden"),d?.classList.add("hidden"))});</script> <div class="container mx-auto px-4 py-8" data-astro-cid-2zp6q64z> <!-- Admin Login Section --> <div id="login-section" class="max-w-md mx-auto" data-astro-cid-2zp6q64z> <h1 class="text-3xl font-bold text-gray-900 mb-4" data-astro-cid-2zp6q64z>Admin Dashboard</h1> <p class="text-gray-700 mb-6" data-astro-cid-2zp6q64z>
+Login with your admin nsec to review and approve community submissions.
+</p> <div class="bg-white rounded-xl shadow-lg p-6 space-y-4" data-astro-cid-2zp6q64z> <div data-astro-cid-2zp6q64z> <label class="block text-sm font-semibold text-gray-700 mb-2" data-astro-cid-2zp6q64z>
+Admin nsec (Private Key)
+</label> <input type="password" id="admin-nsec" placeholder="nsec1..." class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" data-astro-cid-2zp6q64z> <p class="text-sm text-gray-500 mt-2" data-astro-cid-2zp6q64z>
+Your private key stays in your browser and is never sent anywhere.
+</p> </div> <button id="login-btn" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg" data-astro-cid-2zp6q64z>
+Login as Admin
+</button> <p id="login-error" class="text-red-600 text-sm hidden" data-astro-cid-2zp6q64z></p> </div> </div> <!-- Admin Panel (hidden until logged in) --> <div id="admin-panel" class="hidden" data-astro-cid-2zp6q64z> <!-- Header --> <div class="flex justify-between items-center mb-8" data-astro-cid-2zp6q64z> <div data-astro-cid-2zp6q64z> <h1 class="text-3xl font-bold text-gray-900" data-astro-cid-2zp6q64z>Pending Submissions</h1> <p class="text-gray-600 mt-1" data-astro-cid-2zp6q64z>Review and approve community contributions</p> </div> <button id="logout-btn" class="text-red-600 font-semibold hover:text-red-700 px-4 py-2 border-2 border-red-600 rounded-lg hover:bg-red-50 transition" data-astro-cid-2zp6q64z>
+Logout
+</button> </div> <!-- Loading State --> <div id="loading-state" class="text-center py-12" data-astro-cid-2zp6q64z> <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600" data-astro-cid-2zp6q64z></div> <p class="text-gray-600 mt-4" data-astro-cid-2zp6q64z>Loading submissions...</p> </div> <!-- Submissions Grid --> <div id="submissions-grid" class="hidden grid md:grid-cols-2 gap-6" data-astro-cid-2zp6q64z> <!-- Will be populated dynamically --> </div> <!-- Empty State --> <div id="empty-state" class="hidden text-center py-12" data-astro-cid-2zp6q64z> <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-2zp6q64z> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-2zp6q64z></path> </svg> <p class="text-gray-600 text-lg" data-astro-cid-2zp6q64z>No pending submissions</p> <p class="text-gray-500 text-sm mt-2" data-astro-cid-2zp6q64z>New submissions will appear here automatically</p> </div> </div> </div>  <div id="approval-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4" data-astro-cid-2zp6q64z> <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" data-astro-cid-2zp6q64z> <!-- Modal Header --> <div class="bg-green-600 text-white p-6 sticky top-0" data-astro-cid-2zp6q64z> <h2 class="text-2xl font-bold" id="modal-title" data-astro-cid-2zp6q64z>Review Submission</h2> </div> <!-- Modal Content --> <div class="p-6 space-y-6" data-astro-cid-2zp6q64z> <!-- Map Preview --> <div data-astro-cid-2zp6q64z> <h3 class="font-bold text-lg mb-2" data-astro-cid-2zp6q64z>Map Preview</h3> <div id="modal-map" class="h-[400px] rounded-lg border-2 border-gray-300" data-astro-cid-2zp6q64z></div> </div> <!-- Submission Details --> <div data-astro-cid-2zp6q64z> <h3 class="font-bold text-lg mb-2" data-astro-cid-2zp6q64z>Submission Details</h3> <div id="modal-details" class="bg-gray-50 rounded-lg p-4 space-y-2" data-astro-cid-2zp6q64z> <!-- Will be populated dynamically --> </div> </div> <!-- Admin Note --> <div data-astro-cid-2zp6q64z> <label class="block font-bold text-lg mb-2" data-astro-cid-2zp6q64z>Admin Note (Optional)</label> <textarea id="admin-note" rows="3" placeholder="Add a note for the contributor (e.g., 'Great proposal! Approved for 2026 build season.')" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none" data-astro-cid-2zp6q64z></textarea> <p class="text-sm text-gray-500 mt-1" data-astro-cid-2zp6q64z>This will be visible to users viewing the approved route</p> </div> </div> <!-- Modal Actions --> <div class="bg-gray-50 p-6 flex gap-4 border-t-2 border-gray-200" data-astro-cid-2zp6q64z> <button id="approve-btn" class="flex-1 bg-green-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition shadow-lg" data-astro-cid-2zp6q64z>
+✓ Approve & Publish
+</button> <button id="reject-btn" class="flex-1 bg-red-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-red-700 transition shadow-lg" data-astro-cid-2zp6q64z>
+✗ Reject
+</button> <button id="close-modal-btn" class="px-6 py-4 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-100 transition" data-astro-cid-2zp6q64z>
+Close
+</button> </div> </div> </div>  <script type="module">let n;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),n=e;const t=document.getElementById("pwa-install");t&&t.classList.remove("hidden")});document.getElementById("pwa-install-btn")?.addEventListener("click",async()=>{if(n){n.prompt();const{outcome:e}=await n.userChoice;console.log(`User response: ${e}`),n=null;const t=document.getElementById("pwa-install");t&&t.classList.add("hidden")}});document.getElementById("pwa-dismiss")?.addEventListener("click",()=>{const e=document.getElementById("pwa-install");e&&e.classList.add("hidden")});</script> </body> </html> <!-- Load Leaflet for map preview --> <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"> <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> <script type="module">
+  import { decodeNsec, getStoredKeypair, hexToBytes, bytesToHex } from '../lib/nostr.ts';
+  import { ADMIN_NPUB, ANMORE_CENTER, DEFAULT_ZOOM } from '../lib/config.ts';
+  import { SimplePool } from 'nostr-tools/pool';
+  import { RELAYS } from '../lib/routes.ts';
+  import * as nip19 from 'nostr-tools/nip19';
+  import * as nip04 from 'nostr-tools/nip04';
+  import { finalizeEvent } from 'nostr-tools/pure';
+  
+  let adminKeypair = null;
+  let currentSubmissions = [];
+  let currentSubmission = null;
+  let modalMap = null;
+  
+  // Check if admin is already logged in (from sessionStorage)
+  const storedAdminKey = sessionStorage.getItem('admin_secret_key');
+  if (storedAdminKey) {
+    try {
+      const secretKey = hexToBytes(storedAdminKey);
+      const decoded = nip19.decode(ADMIN_NPUB);
+      const adminPubkey = decoded.data as string;
+      const publicKey = await import('nostr-tools/pure').then(m => m.getPublicKey(secretKey));
+      
+      if (publicKey === adminPubkey) {
+        adminKeypair = { secretKey, publicKey };
+        showAdminPanel();
+      }
+    } catch (error) {
+      console.error('Failed to restore admin session:', error);
+      sessionStorage.removeItem('admin_secret_key');
+    }
+  }
+  
+  // Login button
+  document.getElementById('login-btn')?.addEventListener('click', async () => {
+    const nsecInput = document.getElementById('admin-nsec') as HTMLInputElement;
+    const errorEl = document.getElementById('login-error');
+    
+    if (!nsecInput || !errorEl) return;
+    
+    const nsec = nsecInput.value.trim();
+    
+    if (!nsec.startsWith('nsec1')) {
+      errorEl.textContent = 'Invalid nsec format. Must start with "nsec1"';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    
+    try {
+      // Decode nsec
+      const keypair = decodeNsec(nsec);
+      if (!keypair) {
+        errorEl.textContent = 'Invalid nsec key';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
+      // Verify this is the admin key
+      const decoded = nip19.decode(ADMIN_NPUB);
+      const adminPubkey = decoded.data as string;
+      
+      if (keypair.publicKey !== adminPubkey) {
+        errorEl.textContent = 'This is not an authorized admin key';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
+      // Store in sessionStorage
+      adminKeypair = keypair;
+      sessionStorage.setItem('admin_secret_key', bytesToHex(keypair.secretKey));
+      
+      // Show admin panel
+      showAdminPanel();
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      errorEl.textContent = 'Login failed. Please check your key.';
+      errorEl.classList.remove('hidden');
+    }
+  });
+  
+  // Logout button
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    adminKeypair = null;
+    sessionStorage.removeItem('admin_secret_key');
+    document.getElementById('login-section')?.classList.remove('hidden');
+    document.getElementById('admin-panel')?.classList.add('hidden');
+    (document.getElementById('admin-nsec') as HTMLInputElement).value = '';
+  });
+  
+  // Show admin panel and load submissions
+  async function showAdminPanel() {
+    document.getElementById('login-section')?.classList.add('hidden');
+    document.getElementById('admin-panel')?.classList.remove('hidden');
+    
+    await loadPendingSubmissions();
+  }
+  
+  // Load pending submissions (encrypted DMs)
+  async function loadPendingSubmissions() {
+    if (!adminKeypair) return;
+    
+    const loadingState = document.getElementById('loading-state');
+    const submissionsGrid = document.getElementById('submissions-grid');
+    const emptyState = document.getElementById('empty-state');
+    
+    loadingState?.classList.remove('hidden');
+    submissionsGrid?.classList.add('hidden');
+    emptyState?.classList.add('hidden');
+    
+    try {
+      console.log('📥 Loading pending submissions...');
+      
+      const pool = new SimplePool();
+      
+      // Query for DMs sent to admin
+      const filter = {
+        kinds: [4],
+        '#p': [adminKeypair.publicKey],
+        limit: 50
+      };
+      
+      const events = await pool.querySync(RELAYS, filter);
+      pool.close(RELAYS);
+      
+      console.log(`Found ${events.length} DM events`);
+      
+      // Decrypt and parse submissions
+      const submissions = [];
+      
+      for (const event of events) {
+        try {
+          // Decrypt message
+          const decrypted = await nip04.decrypt(
+            adminKeypair.secretKey,
+            event.pubkey,
+            event.content
+          );
+          
+          // Try to parse as HTML submission
+          if (decrypted.includes('Submission')) {
+            // Parse HTML to extract data
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(decrypted, 'text/html');
+            
+            // Extract form type
+            const h1 = doc.querySelector('h1');
+            const formType = h1?.textContent?.trim() || 'Unknown';
+            
+            // Extract GeoJSON
+            const geoJSONPre = doc.querySelector('pre');
+            let geoJSON = null;
+            if (geoJSONPre) {
+              try {
+                geoJSON = JSON.parse(geoJSONPre.textContent || '{}');
+              } catch (e) {
+                console.error('Failed to parse GeoJSON:', e);
+              }
+            }
+            
+            // Extract profile info
+            const profileFields = doc.querySelectorAll('.field');
+            const profile = {
+              name: 'bikeuser',
+              npub: event.pubkey
+            };
+            
+            // Extract form data
+            const formData: any = {};
+            profileFields.forEach(field => {
+              const label = field.querySelector('.label')?.textContent?.trim();
+              const value = field.querySelector('.value')?.textContent?.trim();
+              if (label && value) {
+                formData[label] = value;
+              }
+            });
+            
+            submissions.push({
+              id: event.id,
+              timestamp: event.created_at,
+              pubkey: event.pubkey,
+              formType,
+              geoJSON,
+              formData,
+              profile,
+              rawHTML: decrypted
+            });
+          }
+        } catch (error) {
+          console.error('Failed to decrypt/parse DM:', error);
+        }
+      }
+      
+      console.log(`Parsed ${submissions.length} submissions`);
+      
+      currentSubmissions = submissions;
+      
+      // Display submissions
+      if (submissions.length === 0) {
+        loadingState?.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+      } else {
+        loadingState?.classList.add('hidden');
+        submissionsGrid?.classList.remove('hidden');
+        renderSubmissions(submissions);
+      }
+      
+    } catch (error) {
+      console.error('Error loading submissions:', error);
+      loadingState?.classList.add('hidden');
+      alert('Failed to load submissions. Check console for details.');
+    }
+  }
+  
+  // Render submissions as cards
+  function renderSubmissions(submissions: any[]) {
+    const grid = document.getElementById('submissions-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    submissions.forEach(submission => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow-lg border-2 border-gray-200 overflow-hidden hover:shadow-xl transition';
+      
+      // Determine category
+      let category = 'unknown';
+      let categoryColor = 'gray';
+      
+      if (submission.formType.toLowerCase().includes('bike train')) {
+        category = 'bike-train';
+        categoryColor = 'blue';
+      } else if (submission.formType.toLowerCase().includes('trail')) {
+        category = 'trail';
+        categoryColor = 'green';
+      } else if (submission.formType.toLowerCase().includes('pump')) {
+        category = 'pump-track';
+        categoryColor = 'purple';
+      }
+      
+      card.innerHTML = `
+        <div class="bg-${categoryColor}-600 text-white p-4">
+          <h3 class="font-bold text-lg">${submission.formType}</h3>
+          <p class="text-sm text-${categoryColor}-100 mt-1">
+            ${new Date(submission.timestamp * 1000).toLocaleString()}
+          </p>
+        </div>
+        <div class="p-4 space-y-2">
+          <div class="text-sm">
+            <span class="font-semibold">Contributor:</span>
+            <span class="text-gray-700">${submission.profile.name}</span>
+          </div>
+          ${submission.formData['Trail Name'] ? `
+            <div class="text-sm">
+              <span class="font-semibold">Name:</span>
+              <span class="text-gray-700">${submission.formData['Trail Name']}</span>
+            </div>
+          ` : ''}
+          ${submission.geoJSON ? `
+            <div class="text-sm">
+              <span class="font-semibold">Map Data:</span>
+              <span class="text-green-600">✓ Included</span>
+            </div>
+          ` : ''}
+        </div>
+        <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
+          <button 
+            class="review-btn w-full bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 transition"
+            data-id="${submission.id}"
+          >
+            Review Submission
+          </button>
+        </div>
+      `;
+      
+      // Add click handler
+      const reviewBtn = card.querySelector('.review-btn');
+      reviewBtn?.addEventListener('click', () => {
+        openReviewModal(submission, category);
+      });
+      
+      grid.appendChild(card);
+    });
+  }
+  
+  // Open review modal
+  function openReviewModal(submission: any, category: string) {
+    currentSubmission = { ...submission, category };
+    
+    const modal = document.getElementById('approval-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDetails = document.getElementById('modal-details');
+    
+    modal?.classList.remove('hidden');
+    
+    if (modalTitle) {
+      modalTitle.textContent = `Review: ${submission.formType}`;
+    }
+    
+    // Populate details
+    if (modalDetails) {
+      modalDetails.innerHTML = Object.entries(submission.formData)
+        .map(([key, value]) => `
+          <div class="flex justify-between">
+            <span class="font-semibold text-gray-700">${key}:</span>
+            <span class="text-gray-900">${value}</span>
+          </div>
+        `).join('');
+    }
+    
+    // Initialize map
+    setTimeout(() => {
+      initModalMap(submission.geoJSON);
+    }, 100);
+  }
+  
+  // Initialize modal map
+  function initModalMap(geoJSON: any) {
+    const mapEl = document.getElementById('modal-map');
+    if (!mapEl || !geoJSON) return;
+    
+    // Destroy existing map
+    if (modalMap) {
+      modalMap.remove();
+    }
+    
+    // Create new map
+    modalMap = (window as any).L.map('modal-map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+    
+    (window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(modalMap);
+    
+    // Add GeoJSON
+    const geoLayer = (window as any).L.geoJSON(geoJSON, {
+      style: {
+        color: '#16a34a',
+        weight: 4,
+        opacity: 0.8
+      }
+    }).addTo(modalMap);
+    
+    // Fit bounds
+    if (geoJSON.features && geoJSON.features.length > 0) {
+      modalMap.fitBounds(geoLayer.getBounds());
+    }
+  }
+  
+  // Close modal
+  document.getElementById('close-modal-btn')?.addEventListener('click', () => {
+    document.getElementById('approval-modal')?.classList.add('hidden');
+    if (modalMap) {
+      modalMap.remove();
+      modalMap = null;
+    }
+  });
+  
+  // Approve button
+  document.getElementById('approve-btn')?.addEventListener('click', async () => {
+    if (!currentSubmission || !adminKeypair) return;
+    
+    const adminNote = (document.getElementById('admin-note') as HTMLTextAreaElement)?.value || '';
+    
+    try {
+      console.log('✅ Approving submission:', currentSubmission);
+      
+      // Create approval event (kind:30078)
+      const routeName = currentSubmission.formData['Trail Name'] || 
+                        currentSubmission.formData['Route Name'] ||
+                        currentSubmission.formData['Pump Track Name'] ||
+                        'Community Route';
+      
+      const content = {
+        geoJSON: currentSubmission.geoJSON,
+        description: currentSubmission.formData['Description'] || currentSubmission.formData['Additional Info'] || '',
+        approvalNote: adminNote,
+        adminName: 'Anmore.bike Admin',
+        originalSubmission: {
+          timestamp: currentSubmission.timestamp,
+          contributor: currentSubmission.pubkey
+        }
+      };
+      
+      const eventTemplate = {
+        kind: 30078,
+        content: JSON.stringify(content),
+        tags: [
+          ['d', `${currentSubmission.category}-${Date.now()}`],  // Unique identifier
+          ['t', 'anmore-bike'],
+          ['category', currentSubmission.category],
+          ['name', routeName],
+          ['contributor', nip19.npubEncode(currentSubmission.pubkey)],
+          ['approved_at', Math.floor(Date.now() / 1000).toString()],
+          ['status', 'active']
+        ],
+        created_at: Math.floor(Date.now() / 1000)
+      };
+      
+      const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
+      
+      // Publish to relays
+      const pool = new SimplePool();
+      const promises = RELAYS.map(relay => pool.publish([relay], signedEvent));
+      await Promise.allSettled(promises);
+      pool.close(RELAYS);
+      
+      console.log('✅ Approval published to relays');
+      
+      alert(`Approved: ${routeName}\n\nThe route is now visible to all users!`);
+      
+      // Close modal and refresh
+      document.getElementById('approval-modal')?.classList.add('hidden');
+      await loadPendingSubmissions();
+      
+    } catch (error) {
+      console.error('Approval error:', error);
+      alert('Failed to approve submission. Check console for details.');
+    }
+  });
+  
+  // Reject button
+  document.getElementById('reject-btn')?.addEventListener('click', async () => {
+    const reason = prompt('Rejection reason (will be sent to contributor):');
+    if (!reason || !currentSubmission || !adminKeypair) return;
+    
+    try {
+      // Send rejection DM
+      const message = `Your ${currentSubmission.formType} submission was not approved.\n\nReason: ${reason}\n\nPlease revise and resubmit if you'd like.`;
+      
+      const encryptedContent = await nip04.encrypt(
+        adminKeypair.secretKey,
+        currentSubmission.pubkey,
+        message
+      );
+      
+      const eventTemplate = {
+        kind: 4,
+        content: encryptedContent,
+        tags: [['p', currentSubmission.pubkey]],
+        created_at: Math.floor(Date.now() / 1000)
+      };
+      
+      const signedEvent = finalizeEvent(eventTemplate, adminKeypair.secretKey);
+      
+      const pool = new SimplePool();
+      await pool.publish(RELAYS, signedEvent);
+      pool.close(RELAYS);
+      
+      alert('Rejection sent to contributor');
+      
+      // Close modal and refresh
+      document.getElementById('approval-modal')?.classList.add('hidden');
+      await loadPendingSubmissions();
+      
+    } catch (error) {
+      console.error('Rejection error:', error);
+      alert('Failed to send rejection. Check console for details.');
+    }
+  });
+</script>  

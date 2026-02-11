@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Route Drawing - Anmore Bike</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #map {
+            height: 70vh;
+            min-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-download {
+            background: #28a745;
+        }
+        .btn-download:hover {
+            background: #218838;
+        }
+        .btn-clear {
+            background: #dc3545;
+        }
+        .btn-clear:hover {
+            background: #c82333;
+        }
+        .btn-send {
+            background: #ff6b6b;
+        }
+        .btn-send:hover {
+            background: #ee5a52;
+        }
+        .status {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .info-box h3 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+        .info-box ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        .info-box a {
+            color: #0066cc;
+            font-weight: 600;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚴 Simple Route Drawing</h1>
+        <p style="color: #666; margin-bottom: 20px;">Draw routes and export as GeoJSON files for OpenStreetMap</p>
+        
+        <div class="status">
+            <div id="status-message">Draw a route using the tools on the left side of the map</div>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="controls">
+            <button class="btn-download" id="btn-download" onclick="downloadGeoJSON()">
+                📥 Download GeoJSON File
+            </button>
+            <button id="btn-copy" onclick="copyToClipboard()">
+                📋 Copy GeoJSON
+            </button>
+            <button style="background: #28a745;" onclick="submitToGitHub()">
+                ✨ Submit via GitHub Issue
+            </button>
+            <button class="btn-clear" onclick="clearMap()">
+                🗑️ Clear Drawing
+            </button>
+        </div>
+        
+        <div class="info-box">
+            <h3>📍 How to Submit a Route:</h3>
+            <ol>
+                <li><strong>Draw your route</strong> on the map above using the polyline tool (left side)</li>
+                <li><strong>Click "✨ Submit via GitHub Issue"</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>You'll be prompted for route name and details</li>
+                        <li>Opens GitHub with pre-filled submission form</li>
+                        <li>Click "Submit new issue" (requires GitHub account)</li>
+                    </ul>
+                </li>
+                <li><strong>Admin reviews your submission</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>JP reviews the route on the map</li>
+                        <li>Checks safety and appropriateness</li>
+                        <li>Approves or requests changes</li>
+                    </ul>
+                </li>
+                <li><strong>Route goes live!</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>Approved routes added to routes.json</li>
+                        <li>Appears as <strong style="color: #059669;">green line</strong> on map for everyone</li>
+                        <li>You get notified when it's live!</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <div style="margin-top: 15px; padding: 15px; background: #d1ecf1; border-left: 4px solid #0c5460; border-radius: 4px;">
+                <strong>Don't have GitHub?</strong> No problem!
+                <ul style="margin-top: 5px;">
+                    <li>Click "📥 Download GeoJSON File" instead</li>
+                    <li>Send the file to JP via WhatsApp or email</li>
+                    <li>JP will create the issue for you</li>
+                </ul>
+            </div>
+            
+            <p style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <strong>Note:</strong> Routes are stored in the website code (routes.json file). 
+                They appear as a custom overlay layer ONLY on anmore.bike, not on the public OSM map.
+                Base map = OSM tiles. Green routes = Your approved routes!
+            </p>
+        </div>
+        
+        <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
+            <h3>📨 Optional: Send via Nostr DM</h3>
+            <p>Click "Send via Nostr DM" to send the GeoJSON to admin (requires you to login with your nsec first)</p>
+            <p style="margin-top: 10px;"><strong>Admin npub:</strong> npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm</p>
+            <p style="margin-top: 5px; font-size: 12px; color: #856404;"><em>Note: Private keys (nsec) are never published for security.</em></p>
+        </div>
+        
+        <div id="geojson-preview" style="display: none;">
+            <h3 style="margin-top: 20px; color: #333;">GeoJSON Preview:</h3>
+            <pre id="geojson-content"></pre>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script type="module">
+        import { generateSecretKey, getPublicKey, finalizeEvent } from 'https://esm.sh/nostr-tools@2.7.2/pure';
+        import * as nip19 from 'https://esm.sh/nostr-tools@2.7.2/nip19';
+        import * as nip04 from 'https://esm.sh/nostr-tools@2.7.2/nip04';
+        import { SimplePool } from 'https://esm.sh/nostr-tools@2.7.2/pool';
+        
+        const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
+        const ADMIN_NPUB = 'npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm';
+        // Note: Admin nsec is kept private for security. Use WhatsApp submission instead.
+        
+        let map, drawnItems;
+        let userSecretKey = null;
+        
+        // Initialize map
+        map = L.map('map').setView([49.3257, -122.8565], 14);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+        
+        drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+        
+        // Load and display approved routes from routes.geojson
+        const approvedLayer = new L.FeatureGroup();
+        map.addLayer(approvedLayer);
+        
+        fetch('routes.json')
+            .then(response => response.json())
+            .then(data => {
+                if (data.features && data.features.length > 0) {
+                    L.geoJSON(data, {
+                        style: {
+                            color: '#059669',
+                            weight: 4,
+                            opacity: 0.8
+                        },
+                        onEachFeature: (feature, layer) => {
+                            if (feature.properties && feature.properties.name) {
+                                layer.bindPopup(`
+                                    <strong>${feature.properties.name}</strong><br>
+                                    ${feature.properties.description || 'Approved bike route'}
+                                `);
+                            }
+                        }
+                    }).addTo(approvedLayer);
+                    
+                    console.log(`Loaded ${data.features.length} approved routes from routes.geojson`);
+                }
+            })
+            .catch(err => console.log('No approved routes yet'));
+        
+        // Add layer control
+        L.control.layers(null, {
+            '✅ Approved Routes': approvedLayer,
+            '✏️ Your Drawing': drawnItems
+        }, { collapsed: false }).addTo(map);
+        
+        const drawControl = new L.Control.Draw({
+            edit: {
+                featureGroup: drawnItems
+            },
+            draw: {
+                polygon: false,
+                circle: false,
+                rectangle: false,
+                circlemarker: false,
+                marker: true,
+                polyline: {
+                    shapeOptions: {
+                        color: '#3388ff',
+                        weight: 4
+                    }
+                }
+            }
+        });
+        map.addControl(drawControl);
+        
+        map.on('draw:created', (e) => {
+            drawnItems.addLayer(e.layer);
+            showStatus('Route drawn! You can now download or send it.', false);
+        });
+        
+        // Status messages
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'error' : 'success';
+        }
+        
+        // Get GeoJSON
+        function getGeoJSON() {
+            const geoJSON = drawnItems.toGeoJSON();
+            if (!geoJSON.features || geoJSON.features.length === 0) {
+                return null;
+            }
+            
+            // Add metadata
+            geoJSON.metadata = {
+                created: new Date().toISOString(),
+                tool: 'anmore-bike-simple-draw',
+                location: 'Anmore, BC',
+                type: 'bike-route'
+            };
+            
+            return geoJSON;
+        }
+        
+        // Download GeoJSON
+        window.downloadGeoJSON = function() {
+            const geoJSON = getGeoJSON();
+            if (!geoJSON) {
+                showStatus('Draw a route first!', true);
+                return;
+            }
+            
+            const blob = new Blob([JSON.stringify(geoJSON, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `route-${Date.now()}.geojson`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('✓ GeoJSON file downloaded! You can now upload it to OpenStreetMap.', false);
+            
+            // Show preview
+            document.getElementById('geojson-preview').style.display = 'block';
+            document.getElementById('geojson-content').textContent = JSON.stringify(geoJSON, null, 2);
+        };
+        
+        // Copy to clipboard
+        window.copyToClipboard = function() {
+            const geoJSON = getGeoJSON();
+            if (!geoJSON) {
+                showStatus('Draw a route first!', true);
+                return;
+            }
+            
+            navigator.clipboard.writeText(JSON.stringify(geoJSON, null, 2)).then(() => {
+                showStatus('✓ GeoJSON copied to clipboard!', false);
+            }).catch(err => {
+                showStatus('Failed to copy: ' + err.message, true);
+            });
+        };
+        
+        // Submit to GitHub Issue
+        window.submitToGitHub = async function() {
+            const geoJSON = getGeoJSON();
+            if (!geoJSON) {
+                showStatus('Draw a route first!', true);
+                return;
+            }
+            
+            // Get route details
+            const routeName = prompt('Route name:', 'New Bike Route');
+            if (!routeName) return;
+            
+            const description = prompt('Brief description (optional):', '');
+            const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+            
+            // Copy GeoJSON to clipboard
+            const geoJSONString = JSON.stringify(geoJSON, null, 2);
+            try {
+                await navigator.clipboard.writeText(geoJSONString);
+                
+                // Create issue URL with instructions to paste
+                const issueBody = `## Route Information
+
+**Route Name:** ${routeName}
+
+**Route Type:** [ ] Bike Train to School
+
+**Description:**
+${description || 'Community-submitted bike route'}
+
+**Safety Notes:**
+<!-- Add any safety concerns here -->
+
+---
+
+## Route Data
+
+**GeoJSON:** 
+⚠️ **PASTE YOUR GEOJSON BELOW** (it's been copied to your clipboard!)
+
+\`\`\`json
+Paste here (Ctrl+V / Cmd+V)
+\`\`\`
+
+---
+
+## Additional Information
+
+**Submitted by:** Anonymous
+
+**Difficulty:** ${difficulty}
+
+**Submitted via:** anmore.bike drawing tool`;
+                
+                const issueTitle = encodeURIComponent(`[ROUTE] ${routeName}`);
+                const issueBodyEncoded = encodeURIComponent(issueBody);
+                
+                const githubURL = `https://github.com/jpgaviria2/anmore-bike/issues/new?title=${issueTitle}&body=${issueBodyEncoded}&labels=route-submission,pending-review`;
+                
+                // Show alert with instructions
+                alert('✅ GeoJSON copied to clipboard!\n\n' +
+                      '📝 Next steps:\n' +
+                      '1. GitHub will open in a new tab\n' +
+                      '2. Find the "GeoJSON" section\n' +
+                      '3. Delete "Paste here" text\n' +
+                      '4. Paste your GeoJSON (Ctrl+V or Cmd+V)\n' +
+                      '5. Click "Submit new issue"\n\n' +
+                      'Click OK to continue...');
+                
+                // Open GitHub in new tab
+                window.open(githubURL, '_blank');
+                
+                showStatus('✓ GeoJSON copied! Paste it in the GitHub issue (opened in new tab)', false);
+                
+            } catch (err) {
+                // Clipboard API failed, show alternative
+                alert('⚠️ Could not copy to clipboard.\n\n' +
+                      'Alternative: Click "📋 Copy GeoJSON" button first,\n' +
+                      'then click "Submit via GitHub Issue" again.');
+                showStatus('Copy GeoJSON first, then try again', true);
+            }
+        };
+        
+        // Send via Nostr DM
+        window.sendDM = async function() {
+            const geoJSON = getGeoJSON();
+            if (!geoJSON) {
+                showStatus('Draw a route first!', true);
+                return;
+            }
+            
+            // Get or create user keypair
+            if (!userSecretKey) {
+                const answer = prompt('Paste your nsec (or leave blank to generate new one):');
+                if (answer && answer.startsWith('nsec1')) {
+                    try {
+                        const decoded = nip19.decode(answer);
+                        userSecretKey = decoded.data;
+                    } catch (error) {
+                        showStatus('Invalid nsec!', true);
+                        return;
+                    }
+                } else {
+                    userSecretKey = generateSecretKey();
+                    const nsec = nip19.nsecEncode(userSecretKey);
+                    alert(`Your nsec (save this!):\n${nsec}`);
+                }
+            }
+            
+            showStatus('Sending DM...', false);
+            
+            try {
+                // Get admin pubkey from npub
+                const adminDecoded = nip19.decode(ADMIN_NPUB);
+                const adminPubkey = adminDecoded.data;
+                
+                // Encrypt message
+                const message = `New bike route drawn:\n\nGeoJSON:\n${JSON.stringify(geoJSON, null, 2)}`;
+                const encrypted = await nip04.encrypt(userSecretKey, adminPubkey, message);
+                
+                // Create DM event
+                const eventTemplate = {
+                    kind: 4,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [['p', adminPubkey]],
+                    content: encrypted
+                };
+                
+                const signedEvent = finalizeEvent(eventTemplate, userSecretKey);
+                
+                // Publish
+                const pool = new SimplePool();
+                await pool.publish(RELAYS, signedEvent);
+                pool.close(RELAYS);
+                
+                showStatus('✓ DM sent to admin!', false);
+            } catch (error) {
+                showStatus('Failed to send DM: ' + error.message, true);
+            }
+        };
+        
+        // Clear map
+        window.clearMap = function() {
+            drawnItems.clearLayers();
+            document.getElementById('geojson-preview').style.display = 'none';
+            showStatus('Drawing cleared. Draw a new route!', false);
+        };
+    </script>
+</body>
+</html>
