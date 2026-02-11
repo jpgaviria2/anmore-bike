@@ -50,11 +50,11 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Meeting Point",
+        "name": "Trails Coffee",
         "milestone": true,
-        "time": "8:35 AM",
+        "time": "8:45 AM",
         "icon": "meeting",
-        "description": "Join the group here",
+        "description": "Meet up at Trails Coffee",
         "category": "bike-train"
       },
       "geometry": {
@@ -67,7 +67,7 @@
       "properties": {
         "name": "School",
         "milestone": true,
-        "time": "8:45 AM",
+        "time": "8:50 AM",
         "icon": "end",
         "description": "Arrival at school",
         "category": "bike-train"
