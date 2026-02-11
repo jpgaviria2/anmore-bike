@@ -178,7 +178,7 @@ import Navigation from '../components/Navigation.astro';
         }
       });
       
-      // Nostr DM button
+      // Nostr DM button - with profile authentication
       document.getElementById('submit-nostr-dm')?.addEventListener('click', async () => {
         if (window.anmoreRoutes?.drawingLayer) {
           const layers = window.anmoreRoutes.drawingLayer.getLayers();
@@ -187,32 +187,7 @@ import Navigation from '../components/Navigation.astro';
             return;
           }
           
-          // Get route details
-          const routeName = prompt('Route name:', 'New Bike Route');
-          if (!routeName) return;
-          
-          const description = prompt('Brief description (optional):', '');
-          const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
-          
-          // Get GeoJSON
-          const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
-          geoJSON.metadata = {
-            created: new Date().toISOString(),
-            tool: 'anmore-bike-map',
-            location: 'Anmore, BC',
-            type: 'bike-route'
-          };
-          
-          geoJSON.features.forEach(feature => {
-            feature.properties = {
-              name: routeName,
-              description: description || '',
-              difficulty: difficulty,
-              category: 'bike-train'
-            };
-          });
-          
-          // Import Nostr tools
+          // Import Nostr tools first
           try {
             const { generateSecretKey, getPublicKey, finalizeEvent } = await import('https://esm.sh/nostr-tools@2.7.2/pure');
             const nip19 = await import('https://esm.sh/nostr-tools@2.7.2/nip19');
@@ -222,34 +197,131 @@ import Navigation from '../components/Navigation.astro';
             const ADMIN_NPUB = 'npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm';
             const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
             
-            // Get or generate user key
+            // STEP 1: Profile Authentication (REQUIRED)
             let userSecretKey = localStorage.getItem('nostr_sk');
-            if (userSecretKey) {
-              userSecretKey = JSON.parse(userSecretKey);
-            } else {
-              const answer = prompt('Paste your nsec (or leave blank to generate new one):');
-              if (answer && answer.startsWith('nsec1')) {
+            let userProfile = localStorage.getItem('nostr_profile');
+            
+            if (!userSecretKey || !userProfile) {
+              // No profile exists - create one
+              alert('🔐 Profile Setup Required\n\nBefore sending messages, you need to create your profile.\n\nThis keeps your identity consistent across submissions.');
+              
+              const username = prompt('Choose a username (or leave blank for anonymous):', '');
+              const displayName = username || 'Anonymous';
+              
+              const hasNsec = confirm('Do you already have a Nostr key (nsec)?');
+              
+              if (hasNsec) {
+                const nsecInput = prompt('Paste your nsec:');
+                if (!nsecInput || !nsecInput.startsWith('nsec1')) {
+                  alert('❌ Invalid nsec! Please try again.');
+                  return;
+                }
                 try {
-                  const decoded = nip19.decode(answer);
+                  const decoded = nip19.decode(nsecInput);
                   userSecretKey = decoded.data;
                 } catch (error) {
-                  alert('Invalid nsec! Generating new one...');
-                  userSecretKey = generateSecretKey();
+                  alert('❌ Failed to decode nsec: ' + error.message);
+                  return;
                 }
               } else {
+                // Generate new key
                 userSecretKey = generateSecretKey();
                 const nsec = nip19.nsecEncode(userSecretKey);
-                alert(`Your nsec (save this!):\n${nsec}`);
+                
+                // Show them their new key
+                const copyBox = document.createElement('div');
+                copyBox.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border:3px solid #059669;border-radius:12px;z-index:10000;max-width:500px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+                copyBox.innerHTML = `
+                  <h2 style="color:#059669;margin-bottom:15px;">🔑 Save Your Nostr Key!</h2>
+                  <p style="margin-bottom:15px;color:#666;">This is your identity. Save it somewhere safe!</p>
+                  <textarea readonly style="width:100%;height:80px;font-family:monospace;font-size:12px;padding:10px;border:2px solid #059669;border-radius:6px;margin-bottom:15px;">${nsec}</textarea>
+                  <button id="copy-key-btn" style="width:100%;padding:12px;background:#059669;color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
+                    📋 Copy Key
+                  </button>
+                  <button id="continue-btn" style="width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:6px;font-weight:bold;cursor:pointer;">
+                    ✓ I've Saved It - Continue
+                  </button>
+                  <p style="margin-top:10px;font-size:12px;color:#999;text-align:center;">Without this key, you can't prove future submissions are yours</p>
+                `;
+                document.body.appendChild(copyBox);
+                
+                await new Promise((resolve) => {
+                  document.getElementById('copy-key-btn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(nsec);
+                    document.getElementById('copy-key-btn').textContent = '✓ Copied!';
+                  });
+                  document.getElementById('continue-btn').addEventListener('click', () => {
+                    copyBox.remove();
+                    resolve();
+                  });
+                });
               }
+              
+              // Save profile
+              const profile = {
+                displayName: displayName,
+                createdAt: new Date().toISOString()
+              };
+              
               localStorage.setItem('nostr_sk', JSON.stringify(userSecretKey));
+              localStorage.setItem('nostr_profile', JSON.stringify(profile));
+              
+              alert(`✅ Profile created!\n\nUsername: ${displayName}\n\nYou can now send submissions via Nostr.`);
+              
+            } else {
+              // Profile exists - confirm identity
+              userSecretKey = JSON.parse(userSecretKey);
+              userProfile = JSON.parse(userProfile);
+              
+              const confirm_send = confirm(`Send as: ${userProfile.displayName}\n\nIs this correct?`);
+              if (!confirm_send) {
+                const change = confirm('Do you want to change your profile or use a different key?');
+                if (change) {
+                  localStorage.removeItem('nostr_sk');
+                  localStorage.removeItem('nostr_profile');
+                  alert('Profile cleared. Click the button again to create a new one.');
+                  return;
+                }
+              }
             }
             
-            // Get admin pubkey
+            // STEP 2: Get route details
+            const routeName = prompt('Route name:', 'New Bike Route');
+            if (!routeName) return;
+            
+            const description = prompt('Brief description (optional):', '');
+            const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+            
+            // STEP 3: Get GeoJSON
+            const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
+            geoJSON.metadata = {
+              created: new Date().toISOString(),
+              tool: 'anmore-bike-map',
+              location: 'Anmore, BC',
+              type: 'bike-route',
+              submittedBy: JSON.parse(localStorage.getItem('nostr_profile')).displayName
+            };
+            
+            geoJSON.features.forEach(feature => {
+              feature.properties = {
+                name: routeName,
+                description: description || '',
+                difficulty: difficulty,
+                category: 'bike-train'
+              };
+            });
+            
+            // STEP 4: Send encrypted DM
             const adminDecoded = nip19.decode(ADMIN_NPUB);
             const adminPubkey = adminDecoded.data;
             
-            // Create DM message
+            const userPubkey = getPublicKey(userSecretKey);
+            const userNpub = nip19.npubEncode(userPubkey);
+            
             const dmMessage = `🚴 New Bike Route Submission
+
+**From:** ${JSON.parse(localStorage.getItem('nostr_profile')).displayName}
+**Npub:** ${userNpub}
 
 **Route Name:** ${routeName}
 **Description:** ${description || 'N/A'}
@@ -275,11 +347,13 @@ Submitted from anmore.bike via Nostr DM`;
             
             const signedEvent = finalizeEvent(eventTemplate, userSecretKey);
             
+            alert('📡 Sending to Nostr relays...');
+            
             const pool = new SimplePool();
             await pool.publish(RELAYS, signedEvent);
             pool.close(RELAYS);
             
-            alert('✅ Route sent via Nostr DM!\n\nYour submission has been encrypted and sent to the admin.');
+            alert(`✅ Route sent via Nostr DM!\n\nFrom: ${JSON.parse(localStorage.getItem('nostr_profile')).displayName}\n\nYour submission has been encrypted and sent to the admin.`);
             
           } catch (error) {
             console.error('Nostr error:', error);
