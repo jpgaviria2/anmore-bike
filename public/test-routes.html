@@ -350,12 +350,15 @@
                 pool.close(RELAYS);
                 
                 if (successCount > 0) {
-                    showStatus(`✓ Route published to ${successCount}/${RELAYS.length} relays!`);
-                    log(`SUCCESS! Route "${routeName}" is now live.`);
+                    showStatus(`✓ Route published to ${successCount}/${RELAYS.length} relays! Waiting 10 sec for indexing...`);
+                    log(`SUCCESS! Route "${routeName}" published. Waiting for relay indexing...`);
                     
-                    // Clear drawing and reload
+                    // Clear drawing and reload after delay
                     drawnItems.clearLayers();
-                    setTimeout(() => loadApprovedRoutes(), 1000);
+                    setTimeout(() => {
+                        log('Reloading routes after 10 second delay...');
+                        loadApprovedRoutes();
+                    }, 10000);
                 } else {
                     showStatus('Failed to publish to any relay', true);
                 }
@@ -391,10 +394,29 @@
                 
                 log(`Raw response: ${allEvents.length} total events from relays`);
                 
+                // Debug: show tags of first few events
+                if (allEvents.length > 0) {
+                    log(`DEBUG: First event tags: ${JSON.stringify(allEvents[0].tags)}`);
+                    if (allEvents.length > 1) {
+                        log(`DEBUG: Second event tags: ${JSON.stringify(allEvents[1].tags)}`);
+                    }
+                }
+                
                 // Filter client-side for anmore-bike routes
                 const events = allEvents.filter(event => {
                     const tags = event.tags || [];
-                    return tags.some(tag => tag[0] === 't' && tag[1] === 'anmore-bike');
+                    
+                    // Debug: check each event's tags
+                    const tTags = tags.filter(tag => tag[0] === 't');
+                    if (tTags.length > 0) {
+                        log(`Event ${event.id.substring(0, 8)} has 't' tags: ${JSON.stringify(tTags)}`);
+                    }
+                    
+                    const hasTag = tags.some(tag => tag[0] === 't' && tag[1] === 'anmore-bike');
+                    if (hasTag) {
+                        log(`✓ Found anmore-bike event: ${event.id.substring(0, 16)}...`);
+                    }
+                    return hasTag;
                 });
                 
                 log(`After client-side filtering: ${events.length} anmore-bike routes`);
@@ -462,18 +484,32 @@
                 const pool = new SimplePool();
                 const adminPk = nip19.decode(ADMIN_NPUB).data;
                 
-                log(`Querying for ALL kind:30078 events from admin...`);
-                log(`Admin pubkey: ${adminPk}`);
-                
-                const filter = {
+                // Query 1: ALL events
+                log(`Query 1: ALL kind:30078 events from admin...`);
+                const filter1 = {
                     kinds: [30078],
                     authors: [adminPk]
                 };
+                log(`Filter: ${JSON.stringify(filter1)}`);
+                const allEvents = await pool.querySync(RELAYS, filter1, { timeout: 15000 });
+                log(`Result: ${allEvents.length} total events`);
                 
-                log(`Filter: ${JSON.stringify(filter)}`);
+                // Query 2: Recent events only (last 24 hours)
+                const yesterday = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
+                log(`Query 2: Recent events (since ${new Date(yesterday * 1000).toLocaleString()})...`);
+                const filter2 = {
+                    kinds: [30078],
+                    authors: [adminPk],
+                    since: yesterday
+                };
+                log(`Filter: ${JSON.stringify(filter2)}`);
+                const recentEvents = await pool.querySync(RELAYS, filter2, { timeout: 15000 });
+                log(`Result: ${recentEvents.length} recent events`);
                 
-                const events = await pool.querySync(RELAYS, filter, { timeout: 15000 });
                 pool.close(RELAYS);
+                
+                // Show recent events in detail
+                const events = recentEvents.length > 0 ? recentEvents : allEvents;
                 
                 log(`DEBUG: Found ${events.length} total kind:30078 events`);
                 
