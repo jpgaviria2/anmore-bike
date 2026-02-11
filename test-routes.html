@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Test - Anmore Bike MVP</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-item {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .status-item strong {
+            color: #667eea;
+        }
+        #map {
+            height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-clear {
+            background: #dc3545;
+        }
+        .btn-clear:hover {
+            background: #c82333;
+        }
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        #log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚴 Anmore Bike Route Test (MVP)</h1>
+        <p style="color: #666; margin-bottom: 20px;">Draw routes, approve them, see them appear on the map for everyone!</p>
+        
+        <div class="status">
+            <div class="status-item"><strong>Approved Routes Loaded:</strong> <span id="route-count">0</span></div>
+            <div class="status-item"><strong>Admin Status:</strong> <span id="admin-status">Not logged in</span></div>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="controls">
+            <h3 style="margin-bottom: 15px;">Quick Actions</h3>
+            
+            <div class="control-group">
+                <label>Admin nsec (for auto-approve):</label>
+                <input type="password" id="admin-nsec" placeholder="nsec1..." />
+                <small style="color: #666;">Optional: Paste admin nsec to enable auto-approve</small>
+            </div>
+            
+            <div class="control-group">
+                <label>Route Name:</label>
+                <input type="text" id="route-name" placeholder="Test Route 1" value="Test Route 1" />
+            </div>
+            
+            <div class="control-group">
+                <label>Admin Note (optional):</label>
+                <textarea id="admin-note" rows="2" placeholder="Looks great!"></textarea>
+            </div>
+            
+            <div>
+                <button id="btn-approve" onclick="approveAndPublish()">✓ Approve & Publish Route</button>
+                <button class="btn-clear" onclick="clearMap()">Clear Drawing</button>
+                <button onclick="loadApprovedRoutes()">🔄 Reload Approved Routes</button>
+            </div>
+            
+            <div id="status-message" style="margin-top: 15px;"></div>
+        </div>
+        
+        <div id="log"></div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script type="module">
+        import { generateSecretKey, getPublicKey, finalizeEvent } from 'https://esm.sh/nostr-tools@2.7.2/pure';
+        import * as nip19 from 'https://esm.sh/nostr-tools@2.7.2/nip19';
+        import { SimplePool } from 'https://esm.sh/nostr-tools@2.7.2/pool';
+        
+        // Config
+        const RELAYS = [
+            'wss://relay.anmore.me',
+            'wss://relay.damus.io',
+            'wss://nos.lol',
+            'wss://relay.primal.net'
+        ];
+        const ADMIN_NPUB = 'npub16nkjghvclzr8hwnsn7pqaqlktzz8jyrk6xy7j2lqck2l0rd0rnxskc2n2t';
+        
+        // Global state
+        let map, drawnItems, approvedLayer;
+        let adminSecretKey = null;
+        
+        // Logging
+        function log(message, isError = false) {
+            console.log(message);
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = isError ? '#ff6b6b' : '#00ff00';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'error' : 'success';
+        }
+        
+        // Initialize map
+        function initMap() {
+            log('Initializing map...');
+            map = L.map('map').setView([49.3257, -122.8565], 14);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // User drawing layer
+            drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+            
+            // Approved routes layer
+            approvedLayer = new L.FeatureGroup();
+            map.addLayer(approvedLayer);
+            
+            // Drawing controls
+            const drawControl = new L.Control.Draw({
+                edit: {
+                    featureGroup: drawnItems
+                },
+                draw: {
+                    polygon: false,
+                    circle: false,
+                    rectangle: false,
+                    circlemarker: false,
+                    marker: true,
+                    polyline: {
+                        shapeOptions: {
+                            color: '#3388ff',
+                            weight: 4,
+                            dashArray: '10, 10'
+                        }
+                    }
+                }
+            });
+            map.addControl(drawControl);
+            
+            map.on('draw:created', (e) => {
+                drawnItems.addLayer(e.layer);
+                log('Route drawn! Ready to approve.');
+            });
+            
+            // Layer control
+            L.control.layers(null, {
+                '✅ Approved Routes': approvedLayer,
+                '✏️ Your Drawing': drawnItems
+            }, { collapsed: false }).addTo(map);
+            
+            log('Map initialized ✓');
+        }
+        
+        // Check admin nsec
+        document.getElementById('admin-nsec').addEventListener('input', (e) => {
+            const nsec = e.target.value.trim();
+            if (nsec.startsWith('nsec1')) {
+                try {
+                    const decoded = nip19.decode(nsec);
+                    adminSecretKey = decoded.data;
+                    const pk = getPublicKey(adminSecretKey);
+                    const npub = nip19.npubEncode(pk);
+                    
+                    if (npub === ADMIN_NPUB) {
+                        document.getElementById('admin-status').textContent = 'Logged in as admin ✓';
+                        document.getElementById('admin-status').style.color = '#28a745';
+                        log('Admin authenticated ✓');
+                    } else {
+                        document.getElementById('admin-status').textContent = 'Invalid admin key';
+                        document.getElementById('admin-status').style.color = '#dc3545';
+                        adminSecretKey = null;
+                    }
+                } catch (error) {
+                    adminSecretKey = null;
+                }
+            }
+        });
+        
+        // Approve and publish
+        window.approveAndPublish = async function() {
+            if (!adminSecretKey) {
+                showStatus('Please enter admin nsec first!', true);
+                return;
+            }
+            
+            const geoJSON = drawnItems.toGeoJSON();
+            if (!geoJSON.features || geoJSON.features.length === 0) {
+                showStatus('Please draw a route first!', true);
+                return;
+            }
+            
+            const routeName = document.getElementById('route-name').value.trim() || 'Test Route';
+            const adminNote = document.getElementById('admin-note').value.trim();
+            
+            log('Creating approval event...');
+            showStatus('Publishing route...');
+            
+            try {
+                // Create kind:30078 event
+                const routeId = `bike-train-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                const content = {
+                    geoJSON: geoJSON,
+                    description: routeName,
+                    approvalNote: adminNote || 'Auto-approved via test page',
+                    adminName: 'Admin',
+                    originalSubmission: {
+                        timestamp: Date.now()
+                    }
+                };
+                
+                const eventTemplate = {
+                    kind: 30078,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ['d', routeId],
+                        ['t', 'anmore-bike'],
+                        ['t', 'bike-train'],
+                        ['category', 'bike-train'],
+                        ['name', routeName],
+                        ['approved_at', Math.floor(Date.now() / 1000).toString()],
+                        ['status', 'active']
+                    ],
+                    content: JSON.stringify(content)
+                };
+                
+                const signedEvent = finalizeEvent(eventTemplate, adminSecretKey);
+                log(`Event created: ${signedEvent.id.substring(0, 16)}...`);
+                
+                // Publish to relays
+                const pool = new SimplePool();
+                let successCount = 0;
+                
+                for (const relay of RELAYS) {
+                    try {
+                        await pool.publish([relay], signedEvent);
+                        successCount++;
+                        log(`✓ Published to ${relay}`);
+                    } catch (error) {
+                        log(`✗ Failed: ${relay} - ${error.message}`, true);
+                    }
+                }
+                
+                pool.close(RELAYS);
+                
+                if (successCount > 0) {
+                    showStatus(`✓ Route published to ${successCount}/${RELAYS.length} relays!`);
+                    log(`SUCCESS! Route "${routeName}" is now live.`);
+                    
+                    // Clear drawing and reload
+                    drawnItems.clearLayers();
+                    setTimeout(() => loadApprovedRoutes(), 1000);
+                } else {
+                    showStatus('Failed to publish to any relay', true);
+                }
+                
+            } catch (error) {
+                log(`ERROR: ${error.message}`, true);
+                showStatus(`Error: ${error.message}`, true);
+            }
+        };
+        
+        // Load approved routes
+        window.loadApprovedRoutes = async function() {
+            log('Loading approved routes from relays...');
+            approvedLayer.clearLayers();
+            
+            try {
+                const pool = new SimplePool();
+                const adminPk = nip19.decode(ADMIN_NPUB).data;
+                
+                const filter = {
+                    kinds: [30078],
+                    authors: [adminPk],
+                    '#t': ['anmore-bike'],
+                    '#category': ['bike-train'],
+                    '#status': ['active']
+                };
+                
+                log(`Querying ${RELAYS.length} relays...`);
+                const events = await pool.querySync(RELAYS, filter);
+                pool.close(RELAYS);
+                
+                log(`Found ${events.length} approved routes`);
+                document.getElementById('route-count').textContent = events.length;
+                
+                events.forEach(event => {
+                    try {
+                        const content = JSON.parse(event.content);
+                        const name = event.tags.find(t => t[0] === 'name')?.[1] || 'Unnamed';
+                        const approvedAt = new Date(parseInt(event.tags.find(t => t[0] === 'approved_at')?.[1] || '0') * 1000);
+                        
+                        if (content.geoJSON && content.geoJSON.features) {
+                            L.geoJSON(content.geoJSON, {
+                                style: {
+                                    color: '#059669',
+                                    weight: 4,
+                                    opacity: 0.8
+                                },
+                                onEachFeature: (feature, layer) => {
+                                    layer.bindPopup(`
+                                        <div style="min-width: 200px;">
+                                            <h3 style="margin-bottom: 8px;">${name}</h3>
+                                            <p><strong>Status:</strong> ✅ Approved</p>
+                                            ${content.description ? `<p>${content.description}</p>` : ''}
+                                            ${content.approvalNote ? `<p style="font-style: italic; color: #059669;">"${content.approvalNote}"</p>` : ''}
+                                            <p style="font-size: 0.9em; color: #666;">
+                                                Approved: ${approvedAt.toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    `);
+                                }
+                            }).addTo(approvedLayer);
+                            
+                            log(`✓ Loaded route: ${name}`);
+                        }
+                    } catch (error) {
+                        log(`Error parsing route: ${error.message}`, true);
+                    }
+                });
+                
+                showStatus(`Loaded ${events.length} approved routes`);
+                
+            } catch (error) {
+                log(`ERROR loading routes: ${error.message}`, true);
+                showStatus(`Error loading routes: ${error.message}`, true);
+            }
+        };
+        
+        // Clear map
+        window.clearMap = function() {
+            drawnItems.clearLayers();
+            log('Drawing cleared');
+        };
+        
+        // Initialize
+        initMap();
+        loadApprovedRoutes();
+        log('Ready! Draw a route and click "Approve & Publish"');
+    </script>
+</body>
+</html>
