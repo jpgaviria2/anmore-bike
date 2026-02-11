@@ -377,24 +377,32 @@
                 
                 log(`Admin pubkey: ${adminPk.substring(0, 16)}...`);
                 
+                // Query for ALL kind:30078 events, filter client-side
+                // (relay tag queries not working reliably)
                 const filter = {
                     kinds: [30078],
-                    authors: [adminPk],
-                    '#t': ['anmore-bike']
+                    authors: [adminPk]
                 };
                 
                 log(`Query filter: ${JSON.stringify(filter)}`);
                 log(`Querying ${RELAYS.length} relays...`);
-                const events = await pool.querySync(RELAYS, filter, { timeout: 10000 });
+                const allEvents = await pool.querySync(RELAYS, filter, { timeout: 10000 });
                 pool.close(RELAYS);
                 
-                log(`Raw response: ${events.length} total events`);
+                log(`Raw response: ${allEvents.length} total events from relays`);
+                
+                // Filter client-side for anmore-bike routes
+                const events = allEvents.filter(event => {
+                    const tags = event.tags || [];
+                    return tags.some(tag => tag[0] === 't' && tag[1] === 'anmore-bike');
+                });
+                
+                log(`After client-side filtering: ${events.length} anmore-bike routes`);
                 if (events.length > 0) {
-                    log(`First event ID: ${events[0].id}`);
-                    log(`First event tags: ${JSON.stringify(events[0].tags)}`);
+                    log(`First route ID: ${events[0].id}`);
+                    log(`First route tags: ${JSON.stringify(events[0].tags)}`);
                 }
                 
-                log(`Found ${events.length} approved routes`);
                 document.getElementById('route-count').textContent = events.length;
                 
                 events.forEach(event => {
