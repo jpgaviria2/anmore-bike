@@ -1,0 +1,117 @@
+---
+/**
+ * Simple Bike Train Page - Map + WhatsApp Only
+ */
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+---
+
+<Layout title="Bike Train to School - Anmore.bike">
+  <Navigation />
+  
+  <div class="container mx-auto px-4 py-8 md:py-12">
+    <!-- Header -->
+    <div class="max-w-4xl mx-auto mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        🚴 Bike Train Routes
+      </h1>
+      <p class="text-lg text-gray-700 mb-4">
+        Draw your bike train route on the map and submit it via WhatsApp!
+      </p>
+      <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+        <h3 class="font-bold text-green-900 mb-2">📍 How to Submit a Route:</h3>
+        <ol class="text-sm text-green-800 space-y-1 ml-4">
+          <li>1. Draw your route using the tools on the left side of the map</li>
+          <li>2. Click the <strong>"Submit via WhatsApp"</strong> button (top right)</li>
+          <li>3. Enter route details when prompted</li>
+          <li>4. WhatsApp will open with your route data ready to send!</li>
+        </ol>
+      </div>
+    </div>
+    
+    <!-- Map Section -->
+    <div class="max-w-6xl mx-auto mb-8">
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-green-600 text-white p-4">
+          <h2 class="text-xl font-bold">Interactive Route Map</h2>
+          <p class="text-sm text-green-100 mt-1">
+            Green routes = approved. Draw your route, then click "Submit via WhatsApp" (top right).
+          </p>
+        </div>
+        <div id="map" class="h-[500px] md:h-[600px]"></div>
+        <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
+          <div class="flex flex-wrap gap-2 items-center justify-between">
+            <div class="flex gap-2 items-center text-sm text-gray-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Use the polyline tool (left side) to draw your route</span>
+            </div>
+            <button id="clear-map" class="text-red-600 hover:text-red-700 font-semibold text-sm">
+              🗑️ Clear Drawing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+        <h3 class="font-bold text-blue-900 mb-3">💡 Tips for Drawing Routes</h3>
+        <ul class="text-sm text-blue-800 space-y-2">
+          <li><strong>Polyline tool</strong> (📏) - Click to add points along your route, double-click to finish</li>
+          <li><strong>Marker tool</strong> (📍) - Add markers for important spots (school, meeting point, etc.)</li>
+          <li><strong>Edit tool</strong> (✏️) - Modify your drawing</li>
+          <li><strong>Delete tool</strong> (🗑️) - Remove shapes you don't want</li>
+          <li><strong>Green routes</strong> - These are already approved and visible to everyone</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load Leaflet and scripts -->
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script is:inline src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script is:inline src="/anmore-bike/map-routes.js"></script>
+  
+  <script is:inline>
+    // Initialize map when loaded
+    window.addEventListener('load', () => {
+      if (typeof L === 'undefined') {
+        console.error('❌ Leaflet not loaded');
+        return;
+      }
+      
+      const ANMORE_CENTER = { lat: 49.3257, lng: -122.8565 };
+      const DEFAULT_ZOOM = 14;
+      
+      const map = L.map('map').setView([ANMORE_CENTER.lat, ANMORE_CENTER.lng], DEFAULT_ZOOM);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+      
+      // Initialize Anmore route system with WhatsApp
+      if (typeof window.initAnmoreRoutes === 'function') {
+        window.initAnmoreRoutes(map, {
+          enableDrawing: true,
+          enableSubmission: true,
+          category: 'bike-train',
+          defaultCategory: 'bike-train'
+        });
+        console.log('✅ Anmore route system initialized');
+      } else {
+        console.error('❌ map-routes.js not loaded - WhatsApp button will not appear!');
+      }
+      
+      // Clear map button
+      document.getElementById('clear-map')?.addEventListener('click', () => {
+        if (window.clearAnmoreDrawing) {
+          window.clearAnmoreDrawing();
+        }
+      });
+    });
+  </script>
+</Layout>
