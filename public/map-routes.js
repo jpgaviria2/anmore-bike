@@ -8,7 +8,7 @@
   'use strict';
   
   // Configuration
-  const ROUTES_URL = '/routes.json';
+  const ROUTES_URL = '/anmore-bike/routes.json';
   const WHATSAPP_NUMBER = '17783841055'; // JP's number
   
   // Global state
