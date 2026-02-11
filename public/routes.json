@@ -3,62 +3,75 @@
   "metadata": {
     "name": "Anmore Bike Routes",
     "description": "Community-submitted and approved bike routes in Anmore, BC",
-    "updated": "2026-02-10",
+    "updated": "2026-02-11",
     "source": "https://github.com/jpgaviria2/anmore-bike"
   },
   "features": [
     {
       "type": "Feature",
       "properties": {
-        "name": "Test Route - Segment 1",
-        "description": "First test route submission",
-        "approved_date": "2026-02-10",
-        "category": "test",
+        "name": "Sunnyside to School",
+        "description": "Leaving countryside 8:30am",
+        "approved_date": "2026-02-11",
+        "category": "bike-train",
         "difficulty": "Easy",
         "submitted_by": "JP"
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [-122.855759, 49.322657],
-          [-122.855844, 49.313983]
+          [-122.855676, 49.322674],
+          [-122.855612, 49.317471],
+          [-122.855612, 49.313946],
+          [-122.859517, 49.313932],
+          [-122.859496, 49.313163],
+          [-122.858723, 49.313135],
+          [-122.858723, 49.312645],
+          [-122.85941, 49.311806],
+          [-122.860161, 49.311974]
         ]
       }
     },
     {
       "type": "Feature",
       "properties": {
-        "name": "Test Route - Segment 2",
-        "description": "First test route submission",
-        "approved_date": "2026-02-10",
-        "category": "test",
-        "difficulty": "Easy",
-        "submitted_by": "JP"
+        "name": "Sunnyside to School",
+        "description": "School entrance",
+        "approved_date": "2026-02-11",
+        "category": "bike-train",
+        "difficulty": "Easy"
       },
       "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [-122.855644, 49.313946],
-          [-122.856445, 49.311987]
-        ]
+        "type": "Point",
+        "coordinates": [-122.860183, 49.31196]
       }
     },
     {
       "type": "Feature",
       "properties": {
-        "name": "Test Route - Segment 3",
-        "description": "First test route submission",
-        "approved_date": "2026-02-10",
-        "category": "test",
-        "difficulty": "Easy",
-        "submitted_by": "JP"
+        "name": "Sunnyside to School",
+        "description": "Meeting point",
+        "approved_date": "2026-02-11",
+        "category": "bike-train",
+        "difficulty": "Easy"
       },
       "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [-122.856588, 49.311856],
-          [-122.860537, 49.312024]
-        ]
+        "type": "Point",
+        "coordinates": [-122.856556, 49.313974]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sunnyside to School",
+        "description": "Start point - Countryside",
+        "approved_date": "2026-02-11",
+        "category": "bike-train",
+        "difficulty": "Easy"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.855762, 49.322633]
       }
     }
   ]
