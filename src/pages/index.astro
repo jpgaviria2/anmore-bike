@@ -23,11 +23,11 @@ const base = import.meta.env.BASE_URL;
           Together we're creating safe trails, pump tracks, and bike-friendly routes—without waiting for funding.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href={`${base}trail-building`} class="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-50 transition shadow-lg">
-            Propose a Trail
+          <a href={`${base}bike-train`} class="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-50 transition shadow-lg">
+            🚴 Bike Train to School
           </a>
-          <a href={`${base}leaderboard`} class="bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-800 transition border-2 border-white">
-            View Contributors
+          <a href={`${base}trail-building`} class="bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-green-800 transition border-2 border-white">
+            Propose a Trail
           </a>
         </div>
       </div>
@@ -42,6 +42,31 @@ const base = import.meta.env.BASE_URL;
       </h2>
       
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Bike Train (Featured) -->
+        <a href={`${base}bike-train`} class="group bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl p-6 md:p-8 hover:border-green-500 hover:shadow-xl transition ring-2 ring-green-200 lg:col-span-3 md:col-span-2">
+          <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+            <div class="flex-shrink-0 flex items-center gap-4">
+              <img src={`${base}anmore-adventures-logo.jpg`} alt="Anmore Adventures" class="h-16 w-16 rounded-full object-cover shadow-md" />
+              <img src={`${base}trails-coffee-logo.jpg`} alt="Trails Coffee" class="h-16 w-16 rounded-lg object-cover shadow-md" />
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">NEW</span>
+                <span class="text-sm text-green-700 font-semibold">Brought to you by Anmore Adventures & Trails Coffee</span>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">🚴 Bike Train to School</h3>
+              <p class="text-gray-700">
+                Organize safe group rides to school! Join the bike train — parent volunteers ride at the front and back while kids bike together safely. Departing 8:30 AM from Sunnyside.
+              </p>
+            </div>
+            <div class="flex-shrink-0">
+              <span class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-bold group-hover:bg-green-700 transition">
+                View Route →
+              </span>
+            </div>
+          </div>
+        </a>
+        
         <!-- Trail Building -->
         <a href={`${base}trail-building`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
@@ -65,19 +90,6 @@ const base = import.meta.env.BASE_URL;
           <h3 class="text-xl font-bold text-gray-900 mb-2">Pump Track Ideas</h3>
           <p class="text-gray-600">
             Brainstorm pump track locations and designs. Submit your ideas with interactive maps and help make it a reality.
-          </p>
-        </a>
-        
-        <!-- Bike Train -->
-        <a href={`${base}bike-train`} class="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 hover:shadow-xl transition">
-          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500 transition">
-            <svg class="w-6 h-6 text-green-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">Bike Train to School</h3>
-          <p class="text-gray-600">
-            Organize safe group rides to school. Share routes, coordinate schedules, and volunteer as a bike train leader.
           </p>
         </a>
         
