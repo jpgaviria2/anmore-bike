@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnostic - Anmore.bike</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff00; }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #00aaff; }
+        pre { background: #000; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Anmore.bike Diagnostic</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(msg, type = 'info') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = msg;
+            results.appendChild(p);
+        }
+        
+        async function runDiagnostic() {
+            log('=== STARTING DIAGNOSTIC ===', 'info');
+            log('Timestamp: ' + new Date().toISOString(), 'info');
+            log('');
+            
+            // Check 1: Leaflet
+            log('Checking Leaflet...', 'info');
+            const leafletScript = document.createElement('script');
+            leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            document.head.appendChild(leafletScript);
+            
+            await new Promise(resolve => {
+                leafletScript.onload = () => {
+                    if (typeof L !== 'undefined') {
+                        log('✓ Leaflet loaded: ' + L.version, 'success');
+                    } else {
+                        log('✗ Leaflet failed to load', 'error');
+                    }
+                    resolve();
+                };
+                leafletScript.onerror = () => {
+                    log('✗ Leaflet script failed', 'error');
+                    resolve();
+                };
+            });
+            
+            // Check 2: Leaflet.draw
+            log('Checking Leaflet.draw...', 'info');
+            const drawScript = document.createElement('script');
+            drawScript.src = 'https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js';
+            document.head.appendChild(drawScript);
+            
+            await new Promise(resolve => {
+                drawScript.onload = () => {
+                    if (typeof L !== 'undefined' && L.Control && L.Control.Draw) {
+                        log('✓ Leaflet.draw loaded', 'success');
+                    } else {
+                        log('✗ Leaflet.draw failed', 'error');
+                    }
+                    resolve();
+                };
+                drawScript.onerror = () => {
+                    log('✗ Leaflet.draw script failed', 'error');
+                    resolve();
+                };
+            });
+            
+            // Check 3: map-routes.js
+            log('Checking map-routes.js...', 'info');
+            const routesScript = document.createElement('script');
+            routesScript.src = '/anmore-bike/map-routes.js?' + Date.now();
+            document.head.appendChild(routesScript);
+            
+            await new Promise(resolve => {
+                routesScript.onload = () => {
+                    if (typeof window.initAnmoreRoutes === 'function') {
+                        log('✓ map-routes.js loaded', 'success');
+                        log('✓ initAnmoreRoutes function available', 'success');
+                    } else {
+                        log('✗ initAnmoreRoutes function NOT found', 'error');
+                    }
+                    resolve();
+                };
+                routesScript.onerror = () => {
+                    log('✗ map-routes.js script failed to load', 'error');
+                    resolve();
+                };
+            });
+            
+            // Check 4: routes.json
+            log('', 'info');
+            log('Checking routes.json...', 'info');
+            try {
+                const response = await fetch('/anmore-bike/routes.json?' + Date.now());
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✓ routes.json loaded', 'success');
+                    log('  - Features count: ' + (data.features ? data.features.length : 0), 'info');
+                    if (data.features && data.features.length > 0) {
+                        log('  - Sample route: ' + data.features[0].properties?.name, 'info');
+                        log('  - Category: ' + data.features[0].properties?.category, 'info');
+                    }
+                } else {
+                    log('✗ routes.json HTTP error: ' + response.status, 'error');
+                }
+            } catch (err) {
+                log('✗ routes.json fetch failed: ' + err.message, 'error');
+            }
+            
+            // Check 5: Browser console errors
+            log('', 'info');
+            log('=== OPEN BROWSER CONSOLE (F12) TO SEE MORE DETAILS ===', 'info');
+            log('Look for errors in Console tab', 'info');
+            
+            // Summary
+            log('', 'info');
+            log('=== DIAGNOSTIC COMPLETE ===', 'success');
+            log('', 'info');
+            log('Next: Visit /anmore-bike/bike-train and check console', 'info');
+        }
+        
+        runDiagnostic();
+    </script>
+</body>
+</html>
