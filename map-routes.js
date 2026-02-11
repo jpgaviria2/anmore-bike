@@ -94,26 +94,113 @@
         const approvedLayer = L.geoJSON(filteredData, {
           style: {
             color: '#059669', // Green
-            weight: 4,
-            opacity: 0.8
+            weight: 5,
+            opacity: 0.85
+          },
+          pointToLayer: (feature, latlng) => {
+            const props = feature.properties || {};
+            
+            // Milestone points get custom labeled markers
+            if (props.milestone) {
+              const iconColors = {
+                'start': '#16a34a',   // green
+                'end': '#dc2626',     // red  
+                'meeting': '#2563eb'  // blue
+              };
+              const iconEmojis = {
+                'start': '🚴',
+                'end': '🏫',
+                'meeting': '📍'
+              };
+              const color = iconColors[props.icon] || '#059669';
+              const emoji = iconEmojis[props.icon] || '📍';
+              
+              // Create a div icon with label
+              const labelHtml = `
+                <div style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  min-width: 90px;
+                  transform: translateX(-50%);
+                ">
+                  <div style="
+                    background: ${color};
+                    color: white;
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    font-family: system-ui, sans-serif;
+                    white-space: nowrap;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                    text-align: center;
+                    line-height: 1.3;
+                  ">
+                    ${emoji} ${props.time || ''}
+                    <div style="font-weight: 400; font-size: 11px;">${props.name || ''}</div>
+                  </div>
+                  <div style="
+                    width: 2px;
+                    height: 8px;
+                    background: ${color};
+                  "></div>
+                  <div style="
+                    width: 8px;
+                    height: 8px;
+                    background: ${color};
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                  "></div>
+                </div>
+              `;
+              
+              const icon = L.divIcon({
+                html: labelHtml,
+                className: 'milestone-marker',
+                iconSize: [90, 60],
+                iconAnchor: [45, 60]
+              });
+              
+              return L.marker(latlng, { icon: icon });
+            }
+            
+            // Regular points use default marker
+            return L.marker(latlng);
           },
           onEachFeature: (feature, layer) => {
             if (feature.properties) {
               const props = feature.properties;
-              const popup = `
-                <div style="font-family: system-ui, sans-serif;">
-                  <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold;">
-                    ${props.name || 'Unnamed Route'}
-                  </h3>
-                  ${props.description ? `<p style="margin: 0 0 8px 0; font-size: 14px;">${props.description}</p>` : ''}
-                  <div style="font-size: 12px; color: #666;">
-                    ${props.difficulty ? `<span style="display: inline-block; padding: 2px 8px; background: #e5e7eb; border-radius: 12px; margin-right: 4px;">${props.difficulty}</span>` : ''}
-                    ${props.category ? `<span style="display: inline-block; padding: 2px 8px; background: #dbeafe; border-radius: 12px;">${props.category}</span>` : ''}
+              
+              // Build popup content
+              let popupContent = '';
+              
+              if (props.milestone) {
+                popupContent = `
+                  <div style="font-family: system-ui, sans-serif; min-width: 150px;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: bold;">${props.name || ''}</h3>
+                    ${props.time ? `<p style="margin: 0 0 4px 0; font-size: 14px; color: #059669; font-weight: 600;">⏰ ${props.time}</p>` : ''}
+                    ${props.description ? `<p style="margin: 0; font-size: 13px; color: #666;">${props.description}</p>` : ''}
                   </div>
-                  ${props.approved_date ? `<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Approved: ${props.approved_date}</p>` : ''}
-                </div>
+                `;
+              } else {
+                popupContent = `
+                  <div style="font-family: system-ui, sans-serif;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold;">
+                      ${props.name || 'Unnamed Route'}
+                    </h3>
+                    ${props.description ? `<p style="margin: 0 0 8px 0; font-size: 14px;">${props.description}</p>` : ''}
+                    <div style="font-size: 12px; color: #666;">
+                      ${props.difficulty ? `<span style="display: inline-block; padding: 2px 8px; background: #e5e7eb; border-radius: 12px; margin-right: 4px;">${props.difficulty}</span>` : ''}
+                      ${props.category ? `<span style="display: inline-block; padding: 2px 8px; background: #dbeafe; border-radius: 12px;">${props.category}</span>` : ''}
+                    </div>
+                    ${props.approved_date ? `<p style="margin: 8px 0 0 0; font-size: 11px; color: #999;">Approved: ${props.approved_date}</p>` : ''}
+                  </div>
               `;
-              layer.bindPopup(popup);
+              }
+              
+              layer.bindPopup(popupContent);
             }
           }
         }).addTo(map);
