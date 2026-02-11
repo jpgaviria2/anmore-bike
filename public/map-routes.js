@@ -8,7 +8,9 @@
   'use strict';
   
   // Configuration
-  const ROUTES_URL = '/anmore-bike/routes.json';
+  // Auto-detect base path (works on both GitHub Pages and Hostinger)
+  const BASE_PATH = document.querySelector('meta[name="base-path"]')?.getAttribute('content') || '';
+  const ROUTES_URL = BASE_PATH + '/routes.json';
   const WHATSAPP_NUMBER = '17783841055'; // JP's number
   
   // Global state
