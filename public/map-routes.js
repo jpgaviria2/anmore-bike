@@ -264,8 +264,12 @@
       };
     });
     
-    // Create WhatsApp message
-    const message = `🚴 New Bike Route Submission
+    // Copy GeoJSON to clipboard first
+    const geoJSONString = JSON.stringify(geoJSON, null, 2);
+    
+    navigator.clipboard.writeText(geoJSONString).then(() => {
+      // Create shorter WhatsApp message
+      const message = `🚴 New Bike Route Submission
 
 **Route Name:** ${routeName}
 **Description:** ${description || 'N/A'}
@@ -273,18 +277,50 @@
 **Category:** ${category}
 
 **GeoJSON Data:**
-\`\`\`json
-${JSON.stringify(geoJSON, null, 2)}
-\`\`\`
+(Copied to clipboard - paste below)
 
 Submitted from anmore.bike map`;
-    
-    // Open WhatsApp
-    const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
-    
-    // Show confirmation
-    alert('✅ Opening WhatsApp!\n\nYour route data has been prepared.\nClick Send in WhatsApp to submit.');
+      
+      // Open WhatsApp
+      const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappURL, '_blank');
+      
+      // Show confirmation
+      alert('✅ GeoJSON copied to clipboard!\n\nWhatsApp is opening...\n\n1. Type your message in WhatsApp\n2. Press and hold in the text field\n3. Tap "Paste" to add the GeoJSON\n4. Click Send!');
+      
+    }).catch(err => {
+      // Clipboard failed - show GeoJSON for manual copy
+      const copyBox = document.createElement('div');
+      copyBox.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border:2px solid #333;z-index:10000;max-width:80%;max-height:80%;overflow:auto;';
+      copyBox.innerHTML = `
+        <h3>📋 Copy This GeoJSON:</h3>
+        <p>Select all text below and copy (Ctrl+C or Cmd+C):</p>
+        <textarea style="width:100%;height:200px;font-family:monospace;font-size:12px;" readonly>${geoJSONString}</textarea>
+        <button onclick="this.parentElement.remove()" style="margin-top:10px;padding:10px 20px;background:#25D366;color:white;border:none;border-radius:4px;cursor:pointer;">
+          Close & Open WhatsApp
+        </button>
+      `;
+      
+      document.body.appendChild(copyBox);
+      
+      copyBox.querySelector('button').addEventListener('click', () => {
+        // Create message without GeoJSON
+        const message = `🚴 New Bike Route Submission
+
+**Route Name:** ${routeName}
+**Description:** ${description || 'N/A'}
+**Difficulty:** ${difficulty}
+**Category:** ${category}
+
+**GeoJSON Data:**
+(See copied text - paste it here)
+
+Submitted from anmore.bike map`;
+        
+        const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappURL, '_blank');
+      });
+    });
   }
   
   /**
