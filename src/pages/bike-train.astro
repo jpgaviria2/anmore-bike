@@ -204,6 +204,22 @@ import ProfileModal from '../components/ProfileModal.astro';
         </div>
       </div>
       
+      <!-- Brought to you by -->
+      <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center">
+        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Brought to you by</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-8">
+          <div class="flex flex-col items-center gap-2">
+            <img src={`${import.meta.env.BASE_URL}anmore-adventures-logo.jpg`} alt="Anmore Adventures" class="h-24 w-24 rounded-full object-cover shadow-md" />
+            <span class="font-bold text-gray-800 text-lg">Anmore Adventures</span>
+          </div>
+          <div class="text-gray-300 text-3xl font-light hidden sm:block">&</div>
+          <div class="flex flex-col items-center gap-2">
+            <img src={`${import.meta.env.BASE_URL}trails-coffee-logo.jpg`} alt="Trails Coffee" class="h-24 w-24 rounded-lg object-cover shadow-md" />
+            <span class="font-bold text-gray-800 text-lg">Trails Coffee</span>
+          </div>
+        </div>
+      </div>
+      
     </div>
   </div>
   
