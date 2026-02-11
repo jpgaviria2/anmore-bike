@@ -55,17 +55,30 @@ import Navigation from '../components/Navigation.astro';
       </div>
     </div>
     
-    <!-- Instructions -->
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
-        <h3 class="font-bold text-blue-900 mb-3">💡 Tips for Drawing Routes</h3>
-        <ul class="text-sm text-blue-800 space-y-2">
-          <li><strong>Polyline tool</strong> (📏) - Click to add points along your route, double-click to finish</li>
-          <li><strong>Marker tool</strong> (📍) - Add markers for important spots (school, meeting point, etc.)</li>
-          <li><strong>Edit tool</strong> (✏️) - Modify your drawing</li>
-          <li><strong>Delete tool</strong> (🗑️) - Remove shapes you don't want</li>
-          <li><strong>Green routes</strong> - These are already approved and visible to everyone</li>
-        </ul>
+    <!-- Submission Buttons -->
+    <div class="max-w-4xl mx-auto mb-8">
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">📤 Submit Your Route</h3>
+        <div class="grid md:grid-cols-2 gap-4">
+          <!-- WhatsApp Button -->
+          <button id="submit-whatsapp-manual" class="flex items-center justify-center gap-3 bg-green-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-green-700 transition shadow-lg">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Submit via WhatsApp
+          </button>
+          
+          <!-- Nostr DM Button -->
+          <button id="submit-nostr-dm" class="flex items-center justify-center gap-3 bg-purple-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-purple-700 transition shadow-lg">
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+            </svg>
+            Send via Nostr DM
+          </button>
+        </div>
+        <p class="text-sm text-gray-500 text-center mt-4">
+          Choose your preferred method to submit the route to the admin for approval
+        </p>
       </div>
     </div>
   </div>
@@ -110,6 +123,170 @@ import Navigation from '../components/Navigation.astro';
       document.getElementById('clear-map')?.addEventListener('click', () => {
         if (window.clearAnmoreDrawing) {
           window.clearAnmoreDrawing();
+        }
+      });
+      
+      // Manual WhatsApp button (in case map-routes.js button isn't visible)
+      document.getElementById('submit-whatsapp-manual')?.addEventListener('click', () => {
+        if (window.anmoreRoutes?.drawingLayer) {
+          const layers = window.anmoreRoutes.drawingLayer.getLayers();
+          if (layers.length === 0) {
+            alert('⚠️ Please draw a route on the map first!');
+            return;
+          }
+          
+          // Get route details
+          const routeName = prompt('Route name:', 'New Bike Route');
+          if (!routeName) return;
+          
+          const description = prompt('Brief description (optional):', '');
+          const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+          
+          // Get GeoJSON
+          const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
+          geoJSON.metadata = {
+            created: new Date().toISOString(),
+            tool: 'anmore-bike-map',
+            location: 'Anmore, BC',
+            type: 'bike-route'
+          };
+          
+          geoJSON.features.forEach(feature => {
+            feature.properties = {
+              name: routeName,
+              description: description || '',
+              difficulty: difficulty,
+              category: 'bike-train'
+            };
+          });
+          
+          const geoJSONString = JSON.stringify(geoJSON, null, 2);
+          
+          // Copy to clipboard
+          navigator.clipboard.writeText(geoJSONString).then(() => {
+            const message = `🚴 New Bike Route Submission\n\n**Route Name:** ${routeName}\n**Description:** ${description || 'N/A'}\n**Difficulty:** ${difficulty}\n**Category:** bike-train\n\n**GeoJSON Data:**\n(Copied to clipboard - paste below)\n\nSubmitted from anmore.bike map`;
+            
+            const whatsappURL = `https://wa.me/17783841055?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+            
+            alert('✅ GeoJSON copied to clipboard!\n\nWhatsApp is opening...\n\n1. Type your message in WhatsApp\n2. Press and hold in the text field\n3. Tap "Paste" to add the GeoJSON\n4. Click Send!');
+          }).catch(() => {
+            alert('❌ Could not copy to clipboard. Try using the green WhatsApp button on the map instead.');
+          });
+        } else {
+          alert('⚠️ Map system not ready. Please refresh the page.');
+        }
+      });
+      
+      // Nostr DM button
+      document.getElementById('submit-nostr-dm')?.addEventListener('click', async () => {
+        if (window.anmoreRoutes?.drawingLayer) {
+          const layers = window.anmoreRoutes.drawingLayer.getLayers();
+          if (layers.length === 0) {
+            alert('⚠️ Please draw a route on the map first!');
+            return;
+          }
+          
+          // Get route details
+          const routeName = prompt('Route name:', 'New Bike Route');
+          if (!routeName) return;
+          
+          const description = prompt('Brief description (optional):', '');
+          const difficulty = prompt('Difficulty (Easy/Moderate/Challenging):', 'Easy');
+          
+          // Get GeoJSON
+          const geoJSON = window.anmoreRoutes.drawingLayer.toGeoJSON();
+          geoJSON.metadata = {
+            created: new Date().toISOString(),
+            tool: 'anmore-bike-map',
+            location: 'Anmore, BC',
+            type: 'bike-route'
+          };
+          
+          geoJSON.features.forEach(feature => {
+            feature.properties = {
+              name: routeName,
+              description: description || '',
+              difficulty: difficulty,
+              category: 'bike-train'
+            };
+          });
+          
+          // Import Nostr tools
+          try {
+            const { generateSecretKey, getPublicKey, finalizeEvent } = await import('https://esm.sh/nostr-tools@2.7.2/pure');
+            const nip19 = await import('https://esm.sh/nostr-tools@2.7.2/nip19');
+            const nip04 = await import('https://esm.sh/nostr-tools@2.7.2/nip04');
+            const { SimplePool } = await import('https://esm.sh/nostr-tools@2.7.2/pool');
+            
+            const ADMIN_NPUB = 'npub1ctpvmfhjm0rndk59gtghggr8m6g6u2r7jmykj42slum7qytav8eqzan6rm';
+            const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net'];
+            
+            // Get or generate user key
+            let userSecretKey = localStorage.getItem('nostr_sk');
+            if (userSecretKey) {
+              userSecretKey = JSON.parse(userSecretKey);
+            } else {
+              const answer = prompt('Paste your nsec (or leave blank to generate new one):');
+              if (answer && answer.startsWith('nsec1')) {
+                try {
+                  const decoded = nip19.decode(answer);
+                  userSecretKey = decoded.data;
+                } catch (error) {
+                  alert('Invalid nsec! Generating new one...');
+                  userSecretKey = generateSecretKey();
+                }
+              } else {
+                userSecretKey = generateSecretKey();
+                const nsec = nip19.nsecEncode(userSecretKey);
+                alert(`Your nsec (save this!):\n${nsec}`);
+              }
+              localStorage.setItem('nostr_sk', JSON.stringify(userSecretKey));
+            }
+            
+            // Get admin pubkey
+            const adminDecoded = nip19.decode(ADMIN_NPUB);
+            const adminPubkey = adminDecoded.data;
+            
+            // Create DM message
+            const dmMessage = `🚴 New Bike Route Submission
+
+**Route Name:** ${routeName}
+**Description:** ${description || 'N/A'}
+**Difficulty:** ${difficulty}
+**Category:** bike-train
+
+**GeoJSON Data:**
+\`\`\`json
+${JSON.stringify(geoJSON, null, 2)}
+\`\`\`
+
+Submitted from anmore.bike via Nostr DM`;
+            
+            // Encrypt and send
+            const encrypted = await nip04.encrypt(userSecretKey, adminPubkey, dmMessage);
+            
+            const eventTemplate = {
+              kind: 4,
+              created_at: Math.floor(Date.now() / 1000),
+              tags: [['p', adminPubkey]],
+              content: encrypted
+            };
+            
+            const signedEvent = finalizeEvent(eventTemplate, userSecretKey);
+            
+            const pool = new SimplePool();
+            await pool.publish(RELAYS, signedEvent);
+            pool.close(RELAYS);
+            
+            alert('✅ Route sent via Nostr DM!\n\nYour submission has been encrypted and sent to the admin.');
+            
+          } catch (error) {
+            console.error('Nostr error:', error);
+            alert('❌ Failed to send via Nostr: ' + error.message);
+          }
+        } else {
+          alert('⚠️ Map system not ready. Please refresh the page.');
         }
       });
     });
