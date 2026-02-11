@@ -148,26 +148,30 @@
         </div>
         
         <div class="info-box">
-            <h3>📍 How to Upload to OpenStreetMap:</h3>
+            <h3>📍 How Routes Get Published on Anmore.bike:</h3>
             <ol>
                 <li><strong>Draw your route</strong> on the map above using the polyline tool</li>
                 <li><strong>Click "Download GeoJSON File"</strong> - saves route.geojson to your computer</li>
-                <li><strong>Go to OpenStreetMap:</strong>
+                <li><strong>Send the file to admin</strong> (JP) via:
                     <ul style="margin-top: 5px;">
-                        <li>Option A: <a href="https://www.openstreetmap.org/edit" target="_blank">iD Editor (web-based)</a> - Click "Map Data" → drag & drop your .geojson file</li>
-                        <li>Option B: <a href="https://josm.openstreetmap.de/" target="_blank">JOSM (desktop app)</a> - File → Open → select your .geojson file</li>
+                        <li>WhatsApp / Email attachment</li>
+                        <li>Or click "📨 Send via Nostr DM" button above</li>
                     </ul>
                 </li>
-                <li><strong>Tag the route</strong> in OSM editor:
+                <li><strong>Admin adds route to website:</strong>
                     <ul style="margin-top: 5px;">
-                        <li>highway=path (for trails)</li>
-                        <li>surface=compacted, dirt, gravel, or paved</li>
-                        <li>name=Your Route Name</li>
-                        <li>Add any other relevant tags</li>
+                        <li>Admin opens <code>public/routes.geojson</code> file in the GitHub repo</li>
+                        <li>Adds your route to the "features" array</li>
+                        <li>Commits and pushes to GitHub</li>
+                        <li>Route appears as <strong style="color: #059669;">green line</strong> on this map for everyone!</li>
                     </ul>
                 </li>
-                <li><strong>Upload to OSM</strong> with a changeset comment like "Added bike train route in Anmore"</li>
             </ol>
+            <p style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <strong>Note:</strong> Routes are stored in the website code (routes.geojson file), not in OpenStreetMap. 
+                They appear as a custom overlay layer ONLY on anmore.bike, not on the public OSM map.
+                Base map = OSM tiles. Green routes = Your approved routes!
+            </p>
         </div>
         
         <div class="info-box" style="background: #fff3cd; border-left-color: #ffc107;">
@@ -206,6 +210,41 @@
         
         drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
+        
+        // Load and display approved routes from routes.geojson
+        const approvedLayer = new L.FeatureGroup();
+        map.addLayer(approvedLayer);
+        
+        fetch('routes.geojson')
+            .then(response => response.json())
+            .then(data => {
+                if (data.features && data.features.length > 0) {
+                    L.geoJSON(data, {
+                        style: {
+                            color: '#059669',
+                            weight: 4,
+                            opacity: 0.8
+                        },
+                        onEachFeature: (feature, layer) => {
+                            if (feature.properties && feature.properties.name) {
+                                layer.bindPopup(`
+                                    <strong>${feature.properties.name}</strong><br>
+                                    ${feature.properties.description || 'Approved bike route'}
+                                `);
+                            }
+                        }
+                    }).addTo(approvedLayer);
+                    
+                    console.log(`Loaded ${data.features.length} approved routes from routes.geojson`);
+                }
+            })
+            .catch(err => console.log('No approved routes yet'));
+        
+        // Add layer control
+        L.control.layers(null, {
+            '✅ Approved Routes': approvedLayer,
+            '✏️ Your Drawing': drawnItems
+        }, { collapsed: false }).addTo(map);
         
         const drawControl = new L.Control.Draw({
             edit: {

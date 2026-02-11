@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Routes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .btn-add {
+            background: #28a745;
+        }
+        .btn-add:hover {
+            background: #218838;
+        }
+        .btn-download {
+            background: #ff6b6b;
+        }
+        .btn-download:hover {
+            background: #ee5a52;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #bee5eb;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .route-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚴 Admin - Manage Routes</h1>
+        <p style="color: #666; margin-bottom: 20px;">Add new routes to the anmore.bike custom layer</p>
+        
+        <div class="info">
+            <strong>How This Works:</strong>
+            <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                <li>Users draw routes and send you GeoJSON files</li>
+                <li>Paste the GeoJSON in the "New Route" box below</li>
+                <li>Click "Add Route" to merge it into the current routes</li>
+                <li>Copy the updated GeoJSON and paste it into <code>public/routes.geojson</code> in GitHub</li>
+                <li>Commit and push - route appears on the website!</li>
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h2>Current Routes (<span id="route-count">0</span>)</h2>
+            <div id="route-list"></div>
+        </div>
+        
+        <div class="section">
+            <label>📝 Current routes.geojson:</label>
+            <textarea id="current-geojson" placeholder="Loading..."></textarea>
+            <div style="margin-top: 10px;">
+                <button onclick="loadRoutes()">🔄 Reload from Server</button>
+                <button class="btn-download" onclick="downloadGeoJSON()">💾 Download routes.geojson</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <label>➕ Add New Route (paste GeoJSON from user):</label>
+            <textarea id="new-route" placeholder='Paste GeoJSON here, e.g.:
+{
+  "type": "FeatureCollection",
+  "features": [...]
+}'></textarea>
+            <div style="margin-top: 10px;">
+                <button class="btn-add" onclick="addRoute()">✓ Add Route to Collection</button>
+            </div>
+            <div id="status-message"></div>
+        </div>
+        
+        <div class="section" style="background: #fff3cd; padding: 20px; border-radius: 6px; border: 1px solid #ffc107;">
+            <h3 style="color: #856404;">📌 Final Step: Update GitHub</h3>
+            <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8; color: #856404;">
+                <li>Copy the updated GeoJSON from "Current routes.geojson" box above</li>
+                <li>Go to: <a href="https://github.com/jpgaviria2/anmore-bike/blob/main/public/routes.geojson" target="_blank">GitHub routes.geojson</a></li>
+                <li>Click "Edit" (pencil icon)</li>
+                <li>Replace entire file content with your copied GeoJSON</li>
+                <li>Commit: "Add new bike route"</li>
+                <li>Wait 2-3 minutes for GitHub Pages to rebuild</li>
+                <li>Refresh anmore.bike to see the new green route!</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        let currentRoutes = { type: "FeatureCollection", features: [] };
+        
+        async function loadRoutes() {
+            try {
+                const response = await fetch('routes.geojson?' + Date.now());
+                currentRoutes = await response.json();
+                
+                document.getElementById('current-geojson').value = JSON.stringify(currentRoutes, null, 2);
+                document.getElementById('route-count').textContent = currentRoutes.features.length;
+                
+                // Display route list
+                const routeList = document.getElementById('route-list');
+                if (currentRoutes.features.length === 0) {
+                    routeList.innerHTML = '<p style="color: #999;">No routes yet. Add your first one!</p>';
+                } else {
+                    routeList.innerHTML = currentRoutes.features.map((feature, i) => {
+                        const name = feature.properties?.name || `Route ${i + 1}`;
+                        const desc = feature.properties?.description || 'No description';
+                        return `<div class="route-item"><strong>${name}</strong><br><small>${desc}</small></div>`;
+                    }).join('');
+                }
+                
+                showMessage('Routes loaded successfully!', 'success');
+            } catch (error) {
+                showMessage('No routes file found (this is OK for first time)', 'info');
+            }
+        }
+        
+        function addRoute() {
+            const newRouteText = document.getElementById('new-route').value.trim();
+            if (!newRouteText) {
+                showMessage('Paste a GeoJSON first!', 'error');
+                return;
+            }
+            
+            try {
+                const newData = JSON.parse(newRouteText);
+                
+                // Handle both FeatureCollection and single Feature
+                if (newData.type === 'FeatureCollection') {
+                    // Merge features
+                    currentRoutes.features.push(...newData.features);
+                } else if (newData.type === 'Feature') {
+                    // Add single feature
+                    currentRoutes.features.push(newData);
+                } else {
+                    showMessage('Invalid GeoJSON format!', 'error');
+                    return;
+                }
+                
+                // Update display
+                document.getElementById('current-geojson').value = JSON.stringify(currentRoutes, null, 2);
+                document.getElementById('route-count').textContent = currentRoutes.features.length;
+                document.getElementById('new-route').value = '';
+                
+                showMessage(`✓ Route added! Total routes: ${currentRoutes.features.length}. Now copy the updated GeoJSON and paste into GitHub.`, 'success');
+                
+                // Reload route list
+                loadRoutes();
+                
+            } catch (error) {
+                showMessage('Invalid JSON: ' + error.message, 'error');
+            }
+        }
+        
+        function downloadGeoJSON() {
+            const blob = new Blob([document.getElementById('current-geojson').value], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'routes.geojson';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage('✓ Downloaded routes.geojson', 'success');
+        }
+        
+        function showMessage(text, type) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.className = type;
+            statusEl.textContent = text;
+        }
+        
+        // Load on start
+        loadRoutes();
+    </script>
+</body>
+</html>
