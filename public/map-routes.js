@@ -264,63 +264,202 @@
       };
     });
     
-    // Copy GeoJSON to clipboard first
-    const geoJSONString = JSON.stringify(geoJSON, null, 2);
+    // Store the route data
+    const routeData = {
+      name: routeName,
+      description: description,
+      difficulty: difficulty,
+      category: category,
+      geoJSON: geoJSON,
+      submitted: new Date().toISOString()
+    };
     
+    // Show status modal
+    showStatusModal('Preparing your route data...');
+    
+    // Create the WhatsApp message
+    const geoJSONString = JSON.stringify(geoJSON, null, 2);
+    const message = `🚴 New Bike Route Submission
+
+*Route Name:* ${routeName}
+*Description:* ${description || 'N/A'}
+*Difficulty:* ${difficulty}
+*Category:* ${category}
+*Submitted:* ${new Date().toLocaleString()}
+
+*GeoJSON:*
+\`\`\`
+${geoJSONString}
+\`\`\`
+
+_Submitted from anmore.bike map_`;
+    
+    // Detect device type
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    // Format the WhatsApp URL
+    let whatsappURL;
+    if (isMobile) {
+      // Mobile: use whatsapp:// protocol
+      whatsappURL = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+    } else {
+      // Desktop: use web.whatsapp.com
+      whatsappURL = `https://web.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+    }
+    
+    // Try to copy to clipboard as backup
     navigator.clipboard.writeText(geoJSONString).then(() => {
-      // Create shorter WhatsApp message
-      const message = `🚴 New Bike Route Submission
-
-**Route Name:** ${routeName}
-**Description:** ${description || 'N/A'}
-**Difficulty:** ${difficulty}
-**Category:** ${category}
-
-**GeoJSON Data:**
-(Copied to clipboard - paste below)
-
-Submitted from anmore.bike map`;
-      
-      // Open WhatsApp
-      const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappURL, '_blank');
-      
-      // Show confirmation
-      alert('✅ GeoJSON copied to clipboard!\n\nWhatsApp is opening...\n\n1. Type your message in WhatsApp\n2. Press and hold in the text field\n3. Tap "Paste" to add the GeoJSON\n4. Click Send!');
-      
+      console.log('✅ GeoJSON copied to clipboard');
     }).catch(err => {
-      // Clipboard failed - show GeoJSON for manual copy
-      const copyBox = document.createElement('div');
-      copyBox.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border:2px solid #333;z-index:10000;max-width:80%;max-height:80%;overflow:auto;';
-      copyBox.innerHTML = `
-        <h3>📋 Copy This GeoJSON:</h3>
-        <p>Select all text below and copy (Ctrl+C or Cmd+C):</p>
-        <textarea style="width:100%;height:200px;font-family:monospace;font-size:12px;" readonly>${geoJSONString}</textarea>
-        <button onclick="this.parentElement.remove()" style="margin-top:10px;padding:10px 20px;background:#25D366;color:white;border:none;border-radius:4px;cursor:pointer;">
-          Close & Open WhatsApp
-        </button>
-      `;
-      
-      document.body.appendChild(copyBox);
-      
-      copyBox.querySelector('button').addEventListener('click', () => {
-        // Create message without GeoJSON
-        const message = `🚴 New Bike Route Submission
-
-**Route Name:** ${routeName}
-**Description:** ${description || 'N/A'}
-**Difficulty:** ${difficulty}
-**Category:** ${category}
-
-**GeoJSON Data:**
-(See copied text - paste it here)
-
-Submitted from anmore.bike map`;
-        
-        const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappURL, '_blank');
-      });
+      console.warn('⚠️ Could not copy to clipboard:', err);
     });
+    
+    // Update status
+    updateStatusModal(`Opening WhatsApp...
+
+Your route data has been prepared.
+Click "Send" in WhatsApp to submit.
+
+(GeoJSON also copied to clipboard as backup)`);
+    
+    // Try multiple methods to open WhatsApp
+    try {
+      // Method 1: Direct link navigation
+      const link = document.createElement('a');
+      link.href = whatsappURL;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      
+      // Trigger click
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Give it a moment, then try window.open as backup
+      setTimeout(() => {
+        try {
+          window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+        } catch (e) {
+          console.warn('window.open failed:', e);
+        }
+      }, 500);
+      
+      // Show success after delay
+      setTimeout(() => {
+        updateStatusModal(`✅ WhatsApp should now be open!
+
+If WhatsApp didn't open:
+1. Your GeoJSON is copied to clipboard
+2. Open WhatsApp manually to +${WHATSAPP_NUMBER}
+3. Paste and send the route data
+
+Route: ${routeName}`, true);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+      updateStatusModal(`⚠️ Could not open WhatsApp automatically
+
+Please open WhatsApp manually:
+1. Send message to: +${WHATSAPP_NUMBER}
+2. Paste this route data:
+
+${message}`, true);
+    }
+  }
+  
+  /**
+   * Show status modal
+   */
+  function showStatusModal(message) {
+    // Remove existing modal if any
+    const existing = document.getElementById('whatsapp-status-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'whatsapp-status-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10000;
+      max-width: 500px;
+      width: 90%;
+      font-family: system-ui, sans-serif;
+    `;
+    
+    modal.innerHTML = `
+      <div style="text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 16px;">
+          <svg width="48" height="48" fill="#25D366" viewBox="0 0 24 24" style="vertical-align: middle;">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </div>
+        <div id="status-message" style="font-size: 16px; line-height: 1.6; color: #333; white-space: pre-line;">
+          ${message}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add backdrop
+    const backdrop = document.createElement('div');
+    backdrop.id = 'whatsapp-status-backdrop';
+    backdrop.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+    `;
+    document.body.appendChild(backdrop);
+  }
+  
+  /**
+   * Update status modal message
+   */
+  function updateStatusModal(message, addCloseButton = false) {
+    const messageEl = document.getElementById('status-message');
+    const modal = document.getElementById('whatsapp-status-modal');
+    
+    if (messageEl) {
+      messageEl.textContent = message;
+    }
+    
+    if (addCloseButton && modal) {
+      // Add close button if not exists
+      if (!document.getElementById('status-close-btn')) {
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'status-close-btn';
+        closeBtn.textContent = 'OK';
+        closeBtn.style.cssText = `
+          margin-top: 20px;
+          padding: 12px 24px;
+          background: #25D366;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        `;
+        closeBtn.onmouseover = function() { this.style.background = '#20BA5A'; };
+        closeBtn.onmouseout = function() { this.style.background = '#25D366'; };
+        closeBtn.onclick = function() {
+          document.getElementById('whatsapp-status-modal')?.remove();
+          document.getElementById('whatsapp-status-backdrop')?.remove();
+        };
+        modal.appendChild(closeBtn);
+      }
+    }
   }
   
   /**
