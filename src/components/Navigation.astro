@@ -55,7 +55,7 @@ const navItems = [
     </div>
     
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden lg:hidden pb-4">
+    <div id="mobile-menu" class="hidden lg:hidden pb-4 max-h-[calc(100vh-5rem)] overflow-y-auto">
       {navItems.map(item => (
         <a 
           href={item.href}
