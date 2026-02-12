@@ -1,0 +1,72 @@
+---
+/**
+ * Media Page
+ * 
+ * Photos and posts from Anmore.bike community events and rides.
+ */
+
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.astro';
+import ProfileModal from '../components/ProfileModal.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const posts = [
+  {
+    id: 1,
+    title: "First Ever Anmore Bike-to-School Train! 🚴",
+    date: "February 2026",
+    description: "JP and Jordan launched the first ever Anmore Bike-to-School Train to Anmore Elementary! A great turnout of kids and parents riding together to kick off a new tradition of active transportation in the community.",
+    image: `${base}media/first-bike-train.jpg`,
+    alt: "JP and Jordan at Anmore Elementary with bikes parked after the first Bike-to-School Train"
+  }
+];
+---
+
+<Layout title="Media - Anmore.bike">
+  <Navigation />
+  <ProfileModal />
+  
+  <div class="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">📸 Media</h1>
+    <p class="text-lg text-gray-700 mb-8">
+      Photos and stories from the Anmore.bike community — rides, events, and everything in between.
+    </p>
+    
+    <!-- Posts Grid -->
+    <div class="space-y-10">
+      {posts.map(post => (
+        <article class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+          <div class="aspect-video overflow-hidden">
+            <img 
+              src={post.image} 
+              alt={post.alt}
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <time>{post.date}</time>
+            </div>
+            <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">{post.title}</h2>
+            <p class="text-gray-700 leading-relaxed">{post.description}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- Empty state for when more posts come -->
+    {posts.length === 0 && (
+      <div class="text-center py-16 text-gray-500">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-lg">No posts yet — check back soon!</p>
+      </div>
+    )}
+  </div>
+</Layout>
