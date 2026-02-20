@@ -3,24 +3,29 @@
  * Media Page
  * 
  * Photos and posts from Anmore.bike community events and rides.
+ * Posts loaded from public/data/posts.json for easy additions.
  */
 
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.astro';
 import ProfileModal from '../components/ProfileModal.astro';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const base = import.meta.env.BASE_URL;
 
-const posts = [
-  {
-    id: 1,
-    title: "First Ever Anmore Bike-to-School Train! 🚴",
-    date: "February 2026",
-    description: "JP and Jordan launched the first ever Anmore Bike-to-School Train to Anmore Elementary! A great turnout of kids and parents riding together to kick off a new tradition of active transportation in the community.",
-    image: `${base}media/first-bike-train.jpg`,
-    alt: "JP and Jordan at Anmore Elementary with bikes parked after the first Bike-to-School Train"
-  }
-];
+// Load posts from JSON
+let posts: any[] = [];
+try {
+  const jsonPath = path.join(process.cwd(), 'public', 'data', 'posts.json');
+  const raw = fs.readFileSync(jsonPath, 'utf-8');
+  posts = JSON.parse(raw).posts || [];
+} catch (e) {
+  posts = [];
+}
+
+// Sort by date descending
+posts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 ---
 
 <Layout title="Media - Anmore.bike">
@@ -33,33 +38,49 @@ const posts = [
       Photos and stories from the Anmore.bike community — rides, events, and everything in between.
     </p>
     
-    <!-- Posts Grid -->
-    <div class="space-y-10">
+    <!-- Posts -->
+    <div class="space-y-12">
       {posts.map(post => (
         <article class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div class="aspect-video overflow-hidden">
-            <img 
-              src={post.image} 
-              alt={post.alt}
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-          </div>
           <div class="p-6">
-            <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+            <div class="flex items-center gap-2 text-sm text-green-600 font-semibold uppercase tracking-wide mb-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <time>{post.date}</time>
+              <time>{new Date(post.date + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
             </div>
             <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">{post.title}</h2>
-            <p class="text-gray-700 leading-relaxed">{post.description}</p>
+            <p class="text-gray-700 leading-relaxed mb-6">{post.description}</p>
+
+            {/* Photo grid */}
+            {post.images && post.images.length === 1 ? (
+              <div class="overflow-hidden rounded-lg">
+                <img
+                  src={`${base}${post.images[0].replace(/^\//, '')}`}
+                  alt={post.title}
+                  class="w-full max-h-[500px] object-cover hover:scale-105 transition-transform duration-300 cursor-pointer lightbox-img"
+                  loading="lazy"
+                />
+              </div>
+            ) : (
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {post.images.map((img: string) => (
+                  <div class="overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <img
+                      src={`${base}${img.replace(/^\//, '')}`}
+                      alt={post.title}
+                      class="w-full h-48 md:h-64 object-cover hover:scale-105 transition-transform duration-300 cursor-pointer lightbox-img"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </article>
       ))}
     </div>
 
-    <!-- Empty state for when more posts come -->
     {posts.length === 0 && (
       <div class="text-center py-16 text-gray-500">
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,4 +90,39 @@ const posts = [
       </div>
     )}
   </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center cursor-pointer">
+    <img id="lightbox-img" src="" alt="" class="max-w-[95vw] max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+    <button class="absolute top-4 right-4 text-white text-4xl font-bold hover:text-green-400 transition">&times;</button>
+  </div>
+
+  <script>
+    // Lightbox functionality
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+
+    document.querySelectorAll('.lightbox-img').forEach(img => {
+      img.addEventListener('click', () => {
+        if (lightbox && lightboxImg) {
+          lightboxImg.src = (img as HTMLImageElement).src;
+          lightboxImg.alt = (img as HTMLImageElement).alt;
+          lightbox.classList.remove('hidden');
+          lightbox.classList.add('flex');
+        }
+      });
+    });
+
+    lightbox?.addEventListener('click', () => {
+      lightbox.classList.add('hidden');
+      lightbox.classList.remove('flex');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox) {
+        lightbox.classList.add('hidden');
+        lightbox.classList.remove('flex');
+      }
+    });
+  </script>
 </Layout>
