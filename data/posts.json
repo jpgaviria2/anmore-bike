@@ -1,0 +1,25 @@
+{
+  "posts": [
+    {
+      "date": "2026-02-20",
+      "title": "Cold Beautiful Morning — The Bike Train Rolls!",
+      "description": "Cold beautiful morning and the bike train rolled through the streets of Anmore! Kids bundled up, helmets on, riding together through the frosty streets. This is what community cycling is all about.",
+      "images": [
+        "/media/2026-02-20/1.jpg",
+        "/media/2026-02-20/2.jpg",
+        "/media/2026-02-20/3.jpg",
+        "/media/2026-02-20/4.jpg",
+        "/media/2026-02-20/5.jpg",
+        "/media/2026-02-20/6.jpg"
+      ]
+    },
+    {
+      "date": "2026-02-01",
+      "title": "First Ever Anmore Bike-to-School Train! 🚴",
+      "description": "JP and Jordan launched the first ever Anmore Bike-to-School Train to Anmore Elementary! A great turnout of kids and parents riding together to kick off a new tradition of active transportation in the community.",
+      "images": [
+        "/media/first-bike-train.jpg"
+      ]
+    }
+  ]
+}
